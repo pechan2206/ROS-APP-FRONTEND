@@ -1,93 +1,106 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Login({ setRol }) {
   const navigate = useNavigate();
-  const [usuario, setUsuario] = useState("");
-  const [clave, setClave] = useState("");
+
+  // Usuarios de prueba
+  const usuarios = [
+    { usuario: "admin", contraseña: "admin123", rol: "admin" },
+    { usuario: "mesero", contraseña: "mesero123", rol: "mesero" },
+  ];
+
+  const [form, setForm] = useState({ usuario: "", contraseña: "" });
   const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
-
-    // 🔹 Usuarios simulados
-    const usuarios = [
-      { nombre: "Carlos", rol: "admin", usuario: "admin", clave: "1234" },
-      { nombre: "Juan", rol: "mesero", usuario: "mesero", clave: "1234" },
-    ];
-
     const user = usuarios.find(
-      (u) => u.usuario === usuario && u.clave === clave
+      (u) =>
+        u.usuario === form.usuario && u.contraseña === form.contraseña
     );
-
     if (user) {
       localStorage.setItem("rol", user.rol);
-      localStorage.setItem("nombre", user.nombre);
-
-      if (user.rol === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/mesero/home");
-      }
+      setRol(user.rol);
+      navigate(`/${user.rol}`);
     } else {
       setError("Usuario o contraseña incorrectos");
     }
   };
 
+  const irARegistro = () => {
+    navigate("/register");
+  };
+
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-50">
-      {/* Formulario */}
-      <form
-        onSubmit={handleLogin}
-        className="bg-white shadow-xl rounded-2xl p-8 w-96 border border-gray-100"
-      >
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-96">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
           Iniciar Sesión
         </h2>
 
-        {error && (
-          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
-        )}
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label className="block text-gray-700">Usuario</label>
+            <input
+              type="text"
+              name="usuario"
+              value={form.usuario}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-600 mb-1">Usuario</label>
-          <input
-            type="text"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Contraseña</label>
+            <input
+              type="password"
+              name="contraseña"
+              value={form.contraseña}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+              required
+            />
+          </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-600 mb-1">Contraseña</label>
-          <input
-            type="password"
-            value={clave}
-            onChange={(e) => setClave(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
+          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Entrar
+          </button>
+        </form>
 
         <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          onClick={irARegistro}
+          className="w-full mt-4 text-blue-600 hover:underline text-sm"
         >
-          Ingresar
+          ¿No tienes cuenta? Regístrate
         </button>
-      </form>
 
-      {/* 🔹 Usuarios flotantes */}
-      <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border border-gray-200 shadow-lg rounded-xl p-4 text-sm text-gray-600 space-y-1">
-        <p className="font-semibold text-gray-800 mb-1 text-center">
-          Usuarios de prueba
-        </p>
-        <p>
-          👨‍🍳 <strong>Mesero:</strong> <span className="text-blue-600">mesero / 1234</span>
-        </p>
-        <p>
-          💼 <strong>Admin:</strong> <span className="text-blue-600">admin / 1234</span>
-        </p>
+        {/* 🔹 Usuarios de prueba visibles */}
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-sm font-semibold text-gray-600 mb-2">
+            Usuarios de prueba:
+          </h3>
+          <ul className="text-xs text-gray-500 space-y-1">
+            <li>
+              <strong>Admin:</strong> usuario <code>admin</code> / contraseña{" "}
+              <code>admin123</code>
+            </li>
+            <li>
+              <strong>Mesero:</strong> usuario <code>mesero</code> / contraseña{" "}
+              <code>mesero123</code>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

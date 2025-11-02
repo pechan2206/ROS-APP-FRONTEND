@@ -1,39 +1,33 @@
 export default function TableCard({ mesa, onClick }) {
   const estilos = {
-    libre: {
-      chip: "bg-green-500",
-    },
-    ocupada: {
-      chip: "bg-red-500",
-    },
-    otro: {
-      chip: "bg-yellow-500",
-    },
+    DISPONIBLE: { chip: "bg-green-500" },
+    OCUPADA: { chip: "bg-red-500" },
+    RESERVADA: { chip: "bg-yellow-500" },
+    LIMPIEZA: { chip: "bg-blue-500" },
   };
 
-  const estilo = estilos[mesa.estado] || estilos.libre;
+  const estilo = estilos[mesa.estado] || estilos.DISPONIBLE;
 
   return (
     <button
       onClick={onClick}
-      className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 flex flex-col justify-between p-4 h-36 w-full text-left"
+      className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-between p-4 h-44 w-full text-center"
     >
-      {/* Encabezado: nombre + estado */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-800 truncate max-w-[60%]">
-          {mesa.nombre}
+      {/* Nombre de mesa */}
+      <div>
+        <h3 className="text-xl font-bold text-gray-800">
+          {mesa.nombre.toUpperCase()}
         </h3>
-
         <span
-          className={`text-xs font-semibold text-white px-3 py-1 ml-3 rounded-full ${estilo.chip}`}
+          className={`mt-2 inline-block text-sm font-semibold text-white px-4 py-1 rounded-full ${estilo.chip}`}
         >
-          {mesa.estado.toUpperCase()}
+          {mesa.estado}
         </span>
       </div>
 
       {/* Información inferior */}
-      <div className="mt-3 flex justify-between items-end text-sm">
-        <div>
+      <div className="w-full flex justify-between text-sm mt-4">
+        <div className="text-left">
           <p className="text-gray-500 text-xs">Capacidad</p>
           <p className="font-semibold text-gray-800">{mesa.capacidad}</p>
         </div>

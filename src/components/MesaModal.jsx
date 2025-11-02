@@ -13,9 +13,10 @@ export default function MesaModal({ mesa, onClose, onSave }) {
   };
 
   const estados = [
-    { value: "libre", label: "Libre", color: "text-green-600" },
-    { value: "ocupada", label: "Ocupada", color: "text-red-600" },
-    { value: "otro", label: "Otro estado", color: "text-yellow-600" },
+    { value: "DISPONIBLE", label: "Disponible", color: "text-green-600" },
+    { value: "OCUPADA", label: "Ocupada", color: "text-red-600" },
+    { value: "RESERVADA", label: "Reservada", color: "text-yellow-600" },
+    { value: "LIMPIEZA", label: "Limpieza", color: "text-blue-600" },
   ];
 
   return (
@@ -51,7 +52,7 @@ export default function MesaModal({ mesa, onClose, onSave }) {
             />
           </div>
 
-          {/* Dropdown personalizado */}
+          {/* Estado */}
           <div className="relative">
             <label className="block text-sm text-gray-600 mb-1">Estado</label>
             <button

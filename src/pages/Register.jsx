@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Register() {
+export default function Register() {
   const [form, setForm] = useState({
     nombre: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,12 +19,17 @@ function Register() {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      alert("❌ Las contraseñas no coinciden");
       return;
     }
 
-    console.log("Datos registrados:", form);
-    // Aquí puedes agregar la lógica para enviar los datos a tu backend o API
+    console.log("✅ Datos registrados:", form);
+    alert("Registro exitoso ✅");
+
+    // Aquí podrías guardar temporalmente en localStorage si lo deseas
+    // localStorage.setItem("user", JSON.stringify(form));
+
+    navigate("/"); // Redirige al login
   };
 
   return (
@@ -30,6 +38,7 @@ function Register() {
         <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
           Crear cuenta
         </h2>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nombre */}
           <div>
@@ -105,13 +114,14 @@ function Register() {
 
         <p className="text-center text-sm text-gray-500 mt-4">
           ¿Ya tienes una cuenta?{" "}
-          <a href="#" className="text-blue-600 hover:underline">
+          <button
+            onClick={() => navigate("/")}
+            className="text-blue-600 hover:underline"
+          >
             Inicia sesión
-          </a>
+          </button>
         </p>
       </div>
     </div>
   );
 }
-
-export default Register;

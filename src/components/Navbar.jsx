@@ -6,6 +6,13 @@ export default function Navbar({ nombre = "Juan" }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
+  // 🔹 Manejo correcto del cierre de sesión
+  const handleLogout = () => {
+    localStorage.clear(); // limpia rol, nombre, etc.
+    navigate("/"); // vuelve al login
+    window.location.reload(); // 🔁 evita pantalla blanca (reinicia el router)
+  };
+
   return (
     <header className="bg-white shadow-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center">
@@ -64,7 +71,7 @@ export default function Navbar({ nombre = "Juan" }) {
                 </button>
                 <hr className="my-1" />
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                 >
                   Cerrar sesión
