@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import NavbarAdmin from "../components/NavbarAdmin";
-import Dashboard from "../pages/admin/Dashboard";
+import Dashboard from "../pages/admin/DashboardAdmin";
 import GestionMesas from "../pages/admin/GestionMesas";
 
 export default function AdminRouter() {
