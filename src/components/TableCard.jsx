@@ -1,23 +1,24 @@
-export default function TableCard({ mesa, onClick }) {
+export default function TableCard({ mesa, onClick, actualizarEstado }) {
+  const estadoNormalizado = mesa.estado?.trim().toUpperCase();
+
   const estilos = {
     DISPONIBLE: { chip: "bg-green-500" },
     OCUPADA: { chip: "bg-red-500" },
     RESERVADA: { chip: "bg-yellow-500" },
-    LIMPIEZA: { chip: "bg-blue-500" },
   };
 
-  const estilo = estilos[mesa.estado] || estilos.DISPONIBLE;
+  const estilo = estilos[estadoNormalizado] || estilos.DISPONIBLE;
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(mesa)} // envia la mesa al modal
       className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-between p-4 h-44 w-full text-center"
     >
-      {/* Nombre de mesa */}
       <div>
         <h3 className="text-xl font-bold text-gray-800">
-          {mesa.nombre.toUpperCase()}
+          MESA {mesa.numero}
         </h3>
+
         <span
           className={`mt-2 inline-block text-sm font-semibold text-white px-4 py-1 rounded-full ${estilo.chip}`}
         >
@@ -25,7 +26,6 @@ export default function TableCard({ mesa, onClick }) {
         </span>
       </div>
 
-      {/* Información inferior */}
       <div className="w-full flex justify-between text-sm mt-4">
         <div className="text-left">
           <p className="text-gray-500 text-xs">Capacidad</p>
@@ -33,11 +33,10 @@ export default function TableCard({ mesa, onClick }) {
         </div>
         <div className="text-right">
           <p className="text-gray-500 text-xs">ID</p>
-          <p className="font-semibold text-gray-800">{mesa.id}</p>
+          <p className="font-semibold text-gray-800">{mesa.idMesa}</p>
         </div>
       </div>
 
-      {/* Franja inferior */}
       <div
         className={`absolute bottom-0 left-0 w-full h-2 rounded-b-2xl ${estilo.chip}`}
       ></div>

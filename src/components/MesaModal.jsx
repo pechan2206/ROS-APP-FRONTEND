@@ -1,106 +1,80 @@
 import { useState } from "react";
-import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
 export default function MesaModal({ mesa, onClose, onSave }) {
-  const [nombre, setNombre] = useState(mesa.nombre);
-  const [capacidad, setCapacidad] = useState(mesa.capacidad);
-  const [estado, setEstado] = useState(mesa.estado);
-  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    idMesa: mesa?.idMesa || null,
+    numero: mesa?.numero || "",
+    capacidad: mesa?.capacidad || "",
+    estado: mesa?.estado || "Disponible",
+  });
 
-  const handleSave = () => {
-    onSave({ ...mesa, nombre, capacidad, estado });
-    onClose();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
 
-  const estados = [
-    { value: "DISPONIBLE", label: "Disponible", color: "text-green-600" },
-    { value: "OCUPADA", label: "Ocupada", color: "text-red-600" },
-    { value: "RESERVADA", label: "Reservada", color: "text-yellow-600" },
-    { value: "LIMPIEZA", label: "Limpieza", color: "text-blue-600" },
-  ];
+  const handleSubmit = () => {
+    if (!form.capacidad) {
+      alert("La capacidad es obligatoria");
+      return;
+    }
+
+    onSave(form);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      ></div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
+        <h2 className="text-xl font-semibold mb-4">
+          {form.idMesa ? "Editar Mesa" : "Crear Mesa"}
+        </h2>
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 z-10 overflow-visible">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Editar mesa</h3>
+        {/* Número de mesa */}
+        <div className="mb-4">
+          <label className="text-sm">Número de mesa:</label>
+          <input
+            type="number"
+            name="numero"
+            value={form.numero}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2"
+            disabled={!!form.idMesa} // No se cambia si ya existe
+          />
+        </div>
 
-        <div className="space-y-4">
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Nombre</label>
-            <input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        {/* Capacidad */}
+        <div className="mb-4">
+          <label className="text-sm">Capacidad:</label>
+          <input
+            type="number"
+            name="capacidad"
+            value={form.capacidad}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2"
+          />
+        </div>
 
-          {/* Capacidad */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Capacidad</label>
-            <input
-              type="number"
-              min="1"
-              value={capacidad}
-              onChange={(e) => setCapacidad(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Estado */}
-          <div className="relative">
-            <label className="block text-sm text-gray-600 mb-1">Estado</label>
-            <button
-              type="button"
-              onClick={() => setOpen(!open)}
-              className="w-full px-3 py-2 border rounded-lg flex items-center justify-between focus:ring-2 focus:ring-blue-500"
-            >
-              <span
-                className={
-                  estados.find((e) => e.value === estado)?.color || "text-gray-800"
-                }
-              >
-                {estados.find((e) => e.value === estado)?.label}
-              </span>
-              <ChevronDownIcon className="w-4 h-4 text-gray-500" />
-            </button>
-
-            {open && (
-              <div className="absolute left-0 right-0 mt-2 bg-white border rounded-lg shadow-lg z-50">
-                {estados.map((e) => (
-                  <button
-                    key={e.value}
-                    onClick={() => {
-                      setEstado(e.value);
-                      setOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${e.color}`}
-                  >
-                    {e.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Estado */}
+        <div className="mb-4">
+          <label className="text-sm">Estado:</label>
+          <select
+            name="estado"
+            value={form.estado}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2"
+          >
+            <option value="Disponible">Disponible</option>
+            <option value="Ocupada">Ocupada</option>
+            <option value="Reservada">Reservada</option>
+          </select>
         </div>
 
         {/* Botones */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
-          >
+        <div className="flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded-lg">
             Cancelar
           </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
+          <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
             Guardar
           </button>
         </div>
