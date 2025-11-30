@@ -34,11 +34,51 @@ export default function DashboardAdmin() {
         setAsunto("");
         setMensaje("");
       } else {
-        alert("❌ No se pudo enviar el correo");
+        const errorData = await res.json();
+        alert(`❌ No se pudo enviar el correo: ${errorData.message || "Error desconocido"}`);
       }
     } catch (error) {
       console.error(error);
       alert("⚠ Error de conexión con el servidor");
+    }
+  };
+
+  // Función para descargar el PDF
+  const descargarPDF = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/report/mesas", {
+        method: "GET",
+        headers: {
+          "Accept": "application/pdf",  // Asegúrate de que el servidor devuelve el PDF
+        },
+      });
+
+      if (response.ok) {
+        // Verificar el tipo de contenido antes de proceder
+        const contentType = response.headers.get("Content-Type");
+        if (contentType && contentType.includes("application/pdf")) {
+          // Crear un Blob de la respuesta
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          // Crear un enlace para la descarga
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "reporte_mesas.pdf";  // Nombre del archivo
+          document.body.appendChild(link);
+          link.click();
+
+          // Limpiar el objeto URL después de la descarga
+          window.URL.revokeObjectURL(url);
+        } else {
+          alert("❌ El archivo descargado no es un PDF válido");
+        }
+      } else {
+        alert("❌ No se pudo generar el reporte");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("⚠ Error al intentar descargar el PDF");
     }
   };
 
@@ -78,13 +118,23 @@ export default function DashboardAdmin() {
           className="w-full px-3 py-2 border rounded-lg mb-3 h-24 focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Botón */}
+        {/* Botón para enviar correo */}
         <button
           onClick={enviarCorreo}
           className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow-md hover:bg-blue-700 transition-all"
         >
           <PaperAirplaneIcon className="w-5 h-5" />
           Enviar correo
+        </button>
+      </div>
+
+      {/* Botón para descargar el reporte PDF */}
+      <div className="mt-6">
+        <button
+          onClick={descargarPDF}
+          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow-md hover:bg-green-700 transition-all"
+        >
+          Descargar reporte PDF
         </button>
       </div>
     </div>

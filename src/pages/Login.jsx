@@ -27,15 +27,19 @@ export default function Login({ setRol }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Guardar token y rol
+        // Guarda el token y rol en el localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("rol", data.rol);
         setRol(data.rol);
 
-        // Redirigir según rol
-        if (data.rol === "Administrador") navigate("/admin/dashboard");
-        else if (data.rol === "Mesero") navigate("/mesero/dashboard");
-        else navigate("/usuario/dashboard");
+        // Redirige según el rol
+        if (data.rol === "Administrador") {
+          navigate("/admin/dashboard");
+        } else if (data.rol === "Mesero") {
+          navigate("/mesero/dashboard");
+        } else {
+          navigate("/usuario/dashboard");
+        }
       } else {
         setError(data.message || "Usuario o contraseña incorrectos");
       }
@@ -97,23 +101,6 @@ export default function Login({ setRol }) {
         >
           ¿No tienes cuenta? Regístrate
         </button>
-
-        {/* 🔹 Usuarios de prueba visibles */}
-        <div className="mt-6 border-t pt-4">
-          <h3 className="text-sm font-semibold text-gray-600 mb-2">
-            Usuarios de prueba:
-          </h3>
-          <ul className="text-xs text-gray-500 space-y-1">
-            <li>
-              <strong>Admin:</strong> correo <code>admin@restaurante.com</code>{" "}
-              / contraseña <code>12345</code>
-            </li>
-            <li>
-              <strong>Mesero:</strong> correo <code>steven.andrade.stat@gmail.com</code>{" "}
-              / contraseña <code>123456789</code>
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
   );
