@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import Logout from "./Logout";
 
-export default function NavbarAdmin({ nombre = "Administrador" }) {
+export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -57,12 +58,7 @@ export default function NavbarAdmin({ nombre = "Administrador" }) {
                   Perfil
                 </button>
                 <hr className="my-1" />
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                >
-                  Cerrar sesión
-                </button>
+                <Logout setRol={setRol} />
               </div>
             )}
           </div>

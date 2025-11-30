@@ -3,32 +3,45 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login({ setRol }) {
   const navigate = useNavigate();
-
-  // Usuarios de prueba
-  const usuarios = [
-    { usuario: "admin", contraseña: "admin123", rol: "admin" },
-    { usuario: "mesero", contraseña: "mesero123", rol: "mesero" },
-  ];
-
-  const [form, setForm] = useState({ usuario: "", contraseña: "" });
+  const [form, setForm] = useState({ correo: "", contrasena: "" });
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const user = usuarios.find(
-      (u) =>
-        u.usuario === form.usuario && u.contraseña === form.contraseña
-    );
-    if (user) {
-      localStorage.setItem("rol", user.rol);
-      setRol(user.rol);
-      navigate(`/${user.rol}`);
-    } else {
-      setError("Usuario o contraseña incorrectos");
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          correo: form.correo,
+          contrasena: form.contrasena,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Guardar token y rol
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("rol", data.rol);
+        setRol(data.rol);
+
+        // Redirigir según rol
+        if (data.rol === "Administrador") navigate("/admin/dashboard");
+        else if (data.rol === "Mesero") navigate("/mesero/dashboard");
+        else navigate("/usuario/dashboard");
+      } else {
+        setError(data.message || "Usuario o contraseña incorrectos");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Error de conexión con el servidor");
     }
   };
 
@@ -45,11 +58,11 @@ export default function Login({ setRol }) {
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block text-gray-700">Usuario</label>
+            <label className="block text-gray-700">Correo</label>
             <input
-              type="text"
-              name="usuario"
-              value={form.usuario}
+              type="email"
+              name="correo"
+              value={form.correo}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
               required
@@ -60,8 +73,8 @@ export default function Login({ setRol }) {
             <label className="block text-gray-700">Contraseña</label>
             <input
               type="password"
-              name="contraseña"
-              value={form.contraseña}
+              name="contrasena"
+              value={form.contrasena}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
               required
@@ -92,12 +105,12 @@ export default function Login({ setRol }) {
           </h3>
           <ul className="text-xs text-gray-500 space-y-1">
             <li>
-              <strong>Admin:</strong> usuario <code>admin</code> / contraseña{" "}
-              <code>admin123</code>
+              <strong>Admin:</strong> correo <code>admin@restaurante.com</code>{" "}
+              / contraseña <code>12345</code>
             </li>
             <li>
-              <strong>Mesero:</strong> usuario <code>mesero</code> / contraseña{" "}
-              <code>mesero123</code>
+              <strong>Mesero:</strong> correo <code>steven.andrade.stat@gmail.com</code>{" "}
+              / contraseña <code>123456789</code>
             </li>
           </ul>
         </div>

@@ -3,11 +3,11 @@ import NavbarAdmin from "../components/NavbarAdmin";
 import Dashboard from "../pages/admin/DashboardAdmin";
 import GestionMesas from "../pages/admin/GestionMesas";
 
-export default function AdminRouter() {
+export default function AdminRouter({ setRol }) {   // ← RECIBIR setRol AQUÍ
   return (
     <>
       {/* 🔹 Navbar persistente en todas las páginas del admin */}
-      <NavbarAdmin nombre="Carlos" />
+      <NavbarAdmin nombre="Carlos" setRol={setRol} />  {/* ← PASARLO AL NAVBAR */}
 
       {/* 🔹 Contenido de cada sección */}
       <main className="max-w-7xl mx-auto px-6 py-8">

@@ -12,6 +12,7 @@ export default function AppRouter() {
     const handleStorageChange = () => {
       setRol(localStorage.getItem("rol"));
     };
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
@@ -19,22 +20,24 @@ export default function AppRouter() {
   return (
     <BrowserRouter key={rol || "no-rol"}>
       <Routes>
-        {/* 🟢 Login y registro */}
+        {/* Public routes */}
         <Route path="/login" element={<Login setRol={setRol} />} />
         <Route path="/register" element={<Register />} />
 
-        {/* 🟡 Sin rol: redirige al login */}
+        {/* No role → send to login */}
         {!rol && <Route path="/*" element={<Navigate to="/login" />} />}
 
-        {/* 🔵 Rutas por rol */}
-        {rol === "admin" && (
+        {/* Admin routes */}
+        {rol === "Administrador" && (
           <Route path="/admin/*" element={<AdminRouter setRol={setRol} />} />
         )}
-        {rol === "mesero" && (
+
+        {/* Mesero routes */}
+        {rol === "Mesero" && (
           <Route path="/mesero/*" element={<MeseroRouter setRol={setRol} />} />
         )}
 
-        {/* 🔴 Fallback */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
