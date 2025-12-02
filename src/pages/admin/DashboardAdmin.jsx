@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
+import ReportePedidosPorTipo from "./ReportePedidosPorTipo"; // Necesario para generar el PDF internamente
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function DashboardAdmin() {
   const [destino, setDestino] = useState("");
@@ -43,42 +46,43 @@ export default function DashboardAdmin() {
     }
   };
 
-  // Función para descargar el PDF
+  // ⭐ AQUÍ SE GENERA EL PDF DIRECTO AL TOCAR EL BOTÓN
   const descargarPDF = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/report/mesas", {
-        method: "GET",
-        headers: {
-          "Accept": "application/pdf",  // Asegúrate de que el servidor devuelve el PDF
-        },
+      // Crear un contenedor temporal con el reporte oculto
+      const tempDiv = document.createElement("div");
+      tempDiv.style.position = "absolute";
+      tempDiv.style.left = "-9999px";
+      document.body.appendChild(tempDiv);
+
+      // Renderizar el componente ahí
+      const element = document.createElement("div");
+      element.id = "pdf-content";
+      tempDiv.appendChild(element);
+
+      // Renderizamos el contenido mediante React 18
+      import("react-dom/client").then(({ createRoot }) => {
+        const root = createRoot(element);
+        root.render(<ReportePedidosPorTipo modoPDF={true} />);
+
+        setTimeout(async () => {
+          const canvas = await html2canvas(element);
+          const img = canvas.toDataURL("image/png");
+
+          const pdf = new jsPDF("p", "mm", "a4");
+          const width = pdf.internal.pageSize.getWidth();
+          const height = (canvas.height * width) / canvas.width;
+
+          pdf.addImage(img, "PNG", 0, 0, width, height);
+          pdf.save("reporte_pedidos_por_tipo.pdf");
+
+          // limpiar
+          document.body.removeChild(tempDiv);
+        }, 800); // tiempo para que renderice el gráfico
       });
-
-      if (response.ok) {
-        // Verificar el tipo de contenido antes de proceder
-        const contentType = response.headers.get("Content-Type");
-        if (contentType && contentType.includes("application/pdf")) {
-          // Crear un Blob de la respuesta
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-
-          // Crear un enlace para la descarga
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "reporte_mesas.pdf";  // Nombre del archivo
-          document.body.appendChild(link);
-          link.click();
-
-          // Limpiar el objeto URL después de la descarga
-          window.URL.revokeObjectURL(url);
-        } else {
-          alert("❌ El archivo descargado no es un PDF válido");
-        }
-      } else {
-        alert("❌ No se pudo generar el reporte");
-      }
     } catch (error) {
       console.error(error);
-      alert("⚠ Error al intentar descargar el PDF");
+      alert("❌ Error generando el PDF");
     }
   };
 
@@ -92,7 +96,6 @@ export default function DashboardAdmin() {
           Enviar correo manual
         </h3>
 
-        {/* Correo */}
         <input
           type="email"
           placeholder="Correo destino"
@@ -101,7 +104,6 @@ export default function DashboardAdmin() {
           className="w-full px-3 py-2 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Asunto */}
         <input
           type="text"
           placeholder="Asunto"
@@ -110,7 +112,6 @@ export default function DashboardAdmin() {
           className="w-full px-3 py-2 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Mensaje */}
         <textarea
           placeholder="Mensaje"
           value={mensaje}
@@ -118,7 +119,6 @@ export default function DashboardAdmin() {
           className="w-full px-3 py-2 border rounded-lg mb-3 h-24 focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Botón para enviar correo */}
         <button
           onClick={enviarCorreo}
           className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow-md hover:bg-blue-700 transition-all"
@@ -128,7 +128,7 @@ export default function DashboardAdmin() {
         </button>
       </div>
 
-      {/* Botón para descargar el reporte PDF */}
+      {/* BOTÓN PARA DESCARGAR PDF (SIN CAMBIAR EL DISEÑO) */}
       <div className="mt-6">
         <button
           onClick={descargarPDF}
