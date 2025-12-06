@@ -36,7 +36,7 @@ export default function Login({ setRol }) {
         if (data.rol === "Administrador") {
           navigate("/admin/dashboard");
         } else if (data.rol === "Mesero") {
-          navigate("/mesero/dashboard");
+          navigate("/mesero/home");
         } else {
           navigate("/usuario/dashboard");
         }

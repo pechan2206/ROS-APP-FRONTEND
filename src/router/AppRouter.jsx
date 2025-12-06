@@ -35,6 +35,7 @@ export default function AppRouter() {
         {/* Mesero routes */}
         {rol === "Mesero" && (
           <Route path="/mesero/*" element={<MeseroRouter setRol={setRol} />} />
+          
         )}
 
         {/* Fallback */}
