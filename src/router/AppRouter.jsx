@@ -4,6 +4,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import AdminRouter from "./AdminRouter";
 import MeseroRouter from "./MeseroRouter";
+import CocineroRouter from "./CocineroRouter";  // ← AGREGAR ESTA LÍNEA
 
 export default function AppRouter() {
   const [rol, setRol] = useState(localStorage.getItem("rol"));
@@ -38,9 +39,17 @@ export default function AppRouter() {
           
         )}
 
+        {/* ↓↓↓ AGREGAR ESTAS 4 LÍNEAS ↓↓↓ */}
+        {/* Cocinero routes */}
+        {rol === "Cocinero" && (
+          <Route path="/cocinero/*" element={<CocineroRouter setRol={setRol} />} />
+        )}
+        {/* ↑↑↑ HASTA AQUÍ ↑↑↑ */}
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
 }
+
