@@ -32,26 +32,26 @@ export default function Login({ setRol }) {
                 localStorage.setItem("rol", data.rol);
                 setRol(data.rol);
 
-        // Redirige según el rol
-        if (data.rol === "Administrador") {
-          navigate("/admin/dashboard");
-        } else if (data.rol === "Mesero") {
-          navigate("/mesero/home");
-          
-        } else if (data.rol === "Cocinero") {
-                    navigate("/cocinero/cocina"); // Nuevo rol
-                
-        } else {
-          navigate("/");
+                // Redirige según el rol
+                if (data.rol === "Administrador") {
+                    navigate("/admin/dashboard");
+                } else if (data.rol === "Mesero") {
+                    navigate("/mesero/home");
+                } else if (data.rol === "Cocinero") {
+                    navigate("/cocinero/cocina");
+                } else if (data.rol === "Cajero") {  // ← AGREGAR ESTA LÍNEA
+                    navigate("/cajero/caja");
+                } else {
+                    navigate("/");
+                }
+            } else {
+                setError(data.message || "Usuario o contraseña incorrectos");
+            }
+        } catch (err) {
+            console.error(err);
+            setError("Error de conexión con el servidor");
         }
-      } else {
-        setError(data.message || "Usuario o contraseña incorrectos");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Error de conexión con el servidor");
-    }
-  };
+    };
 
     const irARegistro = () => {
         navigate("/register");

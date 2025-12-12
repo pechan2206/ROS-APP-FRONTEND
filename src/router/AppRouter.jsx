@@ -4,7 +4,8 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import AdminRouter from "./AdminRouter";
 import MeseroRouter from "./MeseroRouter";
-import CocineroRouter from "./CocineroRouter";  // ← AGREGAR ESTA LÍNEA
+import CocineroRouter from "./CocineroRouter";
+import CajeroRouter from "./CajeroRouter";  // ← AGREGAR ESTA LÍNEA
 
 export default function AppRouter() {
   const [rol, setRol] = useState(localStorage.getItem("rol"));
@@ -36,13 +37,17 @@ export default function AppRouter() {
         {/* Mesero routes */}
         {rol === "Mesero" && (
           <Route path="/mesero/*" element={<MeseroRouter setRol={setRol} />} />
-          
         )}
 
-        {/* ↓↓↓ AGREGAR ESTAS 4 LÍNEAS ↓↓↓ */}
         {/* Cocinero routes */}
         {rol === "Cocinero" && (
           <Route path="/cocinero/*" element={<CocineroRouter setRol={setRol} />} />
+        )}
+
+        {/* ↓↓↓ AGREGAR ESTAS LÍNEAS ↓↓↓ */}
+        {/* Cajero routes */}
+        {rol === "Cajero" && (
+          <Route path="/cajero/*" element={<CajeroRouter setRol={setRol} />} />
         )}
         {/* ↑↑↑ HASTA AQUÍ ↑↑↑ */}
 
@@ -52,4 +57,3 @@ export default function AppRouter() {
     </BrowserRouter>
   );
 }
-
