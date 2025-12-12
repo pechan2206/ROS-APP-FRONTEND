@@ -7,6 +7,10 @@ export default function DashboardAdmin() {
   const [destino, setDestino] = useState("");
   const [asunto, setAsunto] = useState("");
   const [mensaje, setMensaje] = useState("");
+
+  const [asuntoMasivo, setAsuntoMasivo] = useState("");
+  const [mensajeMasivo, setMensajeMasivo] = useState("");
+
   const SweetAlert = withReactContent(Swal);
 
   // ✔ VALIDACIÓN DE CORREO
@@ -15,14 +19,18 @@ export default function DashboardAdmin() {
     return regex.test(email);
   };
 
+  // Enviar correo manual a un destinatario
   const enviarCorreo = async () => {
     if (!destino || !asunto || !mensaje) {
-      
-      return SweetAlert.fire("Error", "Todos los campos son obligatorios", "warning");
+      return SweetAlert.fire(
+        "Error",
+        "Todos los campos son obligatorios",
+        "warning"
+      );
     }
 
     if (!esCorreoValido(destino)) {
-      return SweetAlert.fire("Error", "Debes ingresar un correo valido", "warning");
+      return SweetAlert.fire("Error", "Debes ingresar un correo válido", "warning");
     }
 
     try {
@@ -38,23 +46,50 @@ export default function DashboardAdmin() {
         setAsunto("");
         setMensaje("");
       } else {
-        const errorData = await res.json();
         SweetAlert.fire("Error", "No se pudo enviar el correo", "error");
-        
       }
     } catch (error) {
       console.error(error);
-      SweetAlert.fire("Error", "Error de conexion con el servidor", "warning")
+      SweetAlert.fire("Error", "Error de conexión con el servidor", "warning");
     }
   };
 
+  // Enviar correo a todos los usuarios
+  const enviarCorreoMasivo = async () => {
+    if (!asuntoMasivo || !mensajeMasivo) {
+      return SweetAlert.fire(
+        "Error",
+        "Todos los campos son obligatorios para correo masivo",
+        "warning"
+      );
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/api/email/enviar-a-usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asunto: asuntoMasivo, mensaje: mensajeMasivo }),
+      });
+
+      if (res.ok) {
+        SweetAlert.fire("Envio correo masivo", "Correos enviados a todos los usuarios", "success");
+        setAsuntoMasivo("");
+        setMensajeMasivo("");
+      } else {
+        SweetAlert.fire("Error", "No se pudo enviar el correo masivo", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      SweetAlert.fire("Error", "Error de conexión con el servidor", "warning");
+    }
+  };
 
   return (
     <div className="px-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Panel general</h2>
 
-      {/* FORMULARIO DE CORREO */}
-      <div className="bg-white shadow-md rounded-xl p-6 max-w-xl border border-gray-200">
+      {/* FORMULARIO DE CORREO MANUAL */}
+      <div className="bg-white shadow-md rounded-xl p-6 max-w-xl border border-gray-200 mb-6">
         <h3 className="text-xl font-semibold text-gray-700 mb-4">
           Enviar correo manual
         </h3>
@@ -91,7 +126,35 @@ export default function DashboardAdmin() {
         </button>
       </div>
 
+      {/* FORMULARIO DE CORREO MASIVO */}
+      <div className="bg-white shadow-md rounded-xl p-6 max-w-xl border border-gray-200">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">
+          Enviar correo a todos los usuarios
+        </h3>
 
+        <input
+          type="text"
+          placeholder="Asunto"
+          value={asuntoMasivo}
+          onChange={(e) => setAsuntoMasivo(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg mb-3 focus:ring-2 focus:ring-green-500"
+        />
+
+        <textarea
+          placeholder="Mensaje"
+          value={mensajeMasivo}
+          onChange={(e) => setMensajeMasivo(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg mb-3 h-24 focus:ring-2 focus:ring-green-500"
+        />
+
+        <button
+          onClick={enviarCorreoMasivo}
+          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow-md hover:bg-green-700 transition-all"
+        >
+          <PaperAirplaneIcon className="w-5 h-5" />
+          Enviar a todos
+        </button>
+      </div>
     </div>
   );
 }
