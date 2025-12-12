@@ -1,7 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import NavbarAdmin from "../components/NavbarAdmin";
 import Dashboard from "../pages/admin/DashboardAdmin";
-import GestionMesas from "../pages/admin/GestionMesas";
+import Reportes from "../pages/admin/Reportes";
+import Clientes from "../pages/admin/Clientes";
+import Productos from "../pages/admin/Productos";
+import Proveedores from "../pages/admin/Proveedores";
+import Usuarios from "../pages/admin/Usuarios";
 
 export default function AdminRouter({ setRol }) {   // ← RECIBIR setRol AQUÍ
   return (
@@ -15,7 +19,12 @@ export default function AdminRouter({ setRol }) {   // ← RECIBIR setRol AQUÍ
           {/* Redirección al dashboard por defecto */}
           <Route index element={<Navigate to="dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
-          
+          <Route path="reportes" element={<Reportes />}/>
+          <Route path="clientes" element={<Clientes />}/>
+          <Route path="productos" element={<Productos />} />
+          <Route path="proveedores" element={<Proveedores />} /> 
+          <Route path="usuarios" element={<Usuarios />} /> 
+
 
           {/* ⚠️ Ruta de fallback opcional */}
           <Route

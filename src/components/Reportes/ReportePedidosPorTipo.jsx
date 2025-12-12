@@ -8,6 +8,8 @@ import {
 } from "chart.js";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -41,6 +43,7 @@ export default function ReportePedidosPorTipo() {
 
   // Generar PDF
   const generarPDF = async () => {
+    const SweetAlert = withReactContent(Swal);
     try {
       const element = document.getElementById("pdf-content");
       if (!element) {
@@ -69,10 +72,11 @@ export default function ReportePedidosPorTipo() {
       pdf.addImage(imgData, "JPEG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
       pdf.save("reporte_pedidos_por_tipo.pdf");
       
-      alert("PDF generado exitosamente");
+      SweetAlert.fire('PDF Generado', 'Se genero el PDF correctamente', 'success');
     } catch (error) {
       console.error("Error al generar PDF:", error);
-      alert("Error al generar el PDF: " + error.message);
+      SweetAlert.fire('PDF no Generado', 'No se genero el PDF', 'error');
+      
     }
   };
 

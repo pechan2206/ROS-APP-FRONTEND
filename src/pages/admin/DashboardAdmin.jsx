@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
-import ReportePedidosPorTipo from "./ReportePedidosPorTipo"; // Necesario para generar el PDF internamente
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 export default function DashboardAdmin() {
   const [destino, setDestino] = useState("");
   const [asunto, setAsunto] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const SweetAlert = withReactContent(Swal);
 
   // ✔ VALIDACIÓN DE CORREO
   const esCorreoValido = (email) => {
@@ -17,11 +17,12 @@ export default function DashboardAdmin() {
 
   const enviarCorreo = async () => {
     if (!destino || !asunto || !mensaje) {
-      return alert("⚠️ Todos los campos son obligatorios");
+      
+      return SweetAlert.fire("Error", "Todos los campos son obligatorios", "warning");
     }
 
     if (!esCorreoValido(destino)) {
-      return alert("⚠️ Debes ingresar un correo válido");
+      return SweetAlert.fire("Error", "Debes ingresar un correo valido", "warning");
     }
 
     try {
@@ -32,59 +33,21 @@ export default function DashboardAdmin() {
       });
 
       if (res.ok) {
-        alert("📨 Correo enviado correctamente");
+        SweetAlert.fire("Envio correo", "Correo enviado correctamente", "success");
         setDestino("");
         setAsunto("");
         setMensaje("");
       } else {
         const errorData = await res.json();
-        alert(`❌ No se pudo enviar el correo: ${errorData.message || "Error desconocido"}`);
+        SweetAlert.fire("Error", "No se pudo enviar el correo", "error");
+        
       }
     } catch (error) {
       console.error(error);
-      alert("⚠ Error de conexión con el servidor");
+      SweetAlert.fire("Error", "Error de conexion con el servidor", "warning")
     }
   };
 
-  // ⭐ AQUÍ SE GENERA EL PDF DIRECTO AL TOCAR EL BOTÓN
-  const descargarPDF = async () => {
-    try {
-      // Crear un contenedor temporal con el reporte oculto
-      const tempDiv = document.createElement("div");
-      tempDiv.style.position = "absolute";
-      tempDiv.style.left = "-9999px";
-      document.body.appendChild(tempDiv);
-
-      // Renderizar el componente ahí
-      const element = document.createElement("div");
-      element.id = "pdf-content";
-      tempDiv.appendChild(element);
-
-      // Renderizamos el contenido mediante React 18
-      import("react-dom/client").then(({ createRoot }) => {
-        const root = createRoot(element);
-        root.render(<ReportePedidosPorTipo modoPDF={true} />);
-
-        setTimeout(async () => {
-          const canvas = await html2canvas(element);
-          const img = canvas.toDataURL("image/png");
-
-          const pdf = new jsPDF("p", "mm", "a4");
-          const width = pdf.internal.pageSize.getWidth();
-          const height = (canvas.height * width) / canvas.width;
-
-          pdf.addImage(img, "PNG", 0, 0, width, height);
-          pdf.save("reporte_pedidos_por_tipo.pdf");
-
-          // limpiar
-          document.body.removeChild(tempDiv);
-        }, 800); // tiempo para que renderice el gráfico
-      });
-    } catch (error) {
-      console.error(error);
-      alert("❌ Error generando el PDF");
-    }
-  };
 
   return (
     <div className="px-6">
@@ -128,15 +91,7 @@ export default function DashboardAdmin() {
         </button>
       </div>
 
-      {/* BOTÓN PARA DESCARGAR PDF (SIN CAMBIAR EL DISEÑO) */}
-      <div className="mt-6">
-        <button
-          onClick={descargarPDF}
-          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow-md hover:bg-green-700 transition-all"
-        >
-          Descargar reporte PDF
-        </button>
-      </div>
+
     </div>
   );
 }
