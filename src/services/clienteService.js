@@ -17,8 +17,25 @@ export const clienteService = {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(cliente),
         });
+
+        // Si backend responde con error (400, 500, etc)
+        if (!res.ok) {
+            let errorMessage = "Error desconocido";
+
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.message || JSON.stringify(errorData);
+            } catch {
+                // Si no manda JSON capturar texto
+                errorMessage = await res.text();
+            }
+
+            throw new Error(errorMessage);
+        }
+
         return res.json();
     },
+
 
     actualizar: async (id, cliente) => {
         const res = await fetch(`${API_URL}/${id}`, {

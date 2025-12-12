@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import PedidoCard from "../../components/PedidoCard";
 import PedidoModal from "../../components/PedidoModal";
 import { pedidoService } from "../../services/pedidoService";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 export default function Cocina() {
   const [pedidos, setPedidos] = useState([]);
@@ -9,6 +11,7 @@ export default function Cocina() {
   const [modalOpen, setModalOpen] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState("todos");
+  const SweetAlert = withReactContent(Swal);
 
   // Cargar pedidos
   const cargarPedidos = async () => {
@@ -26,8 +29,10 @@ export default function Cocina() {
         estadosPermitidos.includes(p.estado)
       );
       setPedidos(pedidosCocina);
+      SweetAlert.fire("Pedidos", "Se ha actualizado correctamente", "success");
     } catch (error) {
       console.error("Error al cargar pedidos:", error);
+      SweetAlert.fire("Pedidos", "Error al cargar pedidos", "error");
     } finally {
       setLoading(false);
     }
@@ -87,7 +92,7 @@ export default function Cocina() {
       cargarPedidos();
     } catch (error) {
       console.error("Error al cambiar estado:", error);
-      alert("Error al actualizar el pedido");
+      SweetAlert.fire("Error", "Error al actualizar el pedido", "error");
     }
   };
 
@@ -258,34 +263,9 @@ export default function Cocina() {
                     >
                       Iniciar Preparación
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          window.confirm(
-                            "¿Estás seguro de cancelar este pedido?"
-                          )
-                        ) {
-                          cambiarEstadoRapido(pedido, "Cancelado");
-                        }
-                      }}
-                      className="px-4 py-2.5 bg-red-400 text-white text-sm font-bold rounded-lg hover:bg-red-500 transition shadow-md hover:shadow-lg flex items-center justify-center"
-                      title="Cancelar pedido"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
+
+                    {/* CANCELAR CON SWEETALERT */}
+                    
                   </>
                 )}
 
@@ -301,34 +281,7 @@ export default function Cocina() {
                     >
                       Marcar Entregado
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          window.confirm(
-                            "¿Estás seguro de cancelar este pedido?"
-                          )
-                        ) {
-                          cambiarEstadoRapido(pedido, "Cancelado");
-                        }
-                      }}
-                      className="px-4 py-2.5 bg-red-400 text-white text-sm font-bold rounded-lg hover:bg-red-500 transition shadow-md hover:shadow-lg flex items-center justify-center"
-                      title="Cancelar pedido"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
+
                   </>
                 )}
               </div>

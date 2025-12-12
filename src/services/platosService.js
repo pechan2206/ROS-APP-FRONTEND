@@ -10,11 +10,17 @@ const getAuthHeaders = () => {
 export const platosService = {
   // Obtener todos los detalles de pedido
   listar: async () => {
-    const res = await axios.get(API_URL,{
+    try {
+      const res = await axios.get(API_URL, {
         headers: getAuthHeaders(),
-    });
-    return res.data;
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Error al listar platos:", error);
+      throw error; // para que quien llame al método pueda manejarlo
+    }
   },
+
 
 
 }

@@ -14,6 +14,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export default function ReportePedidosPorTipo() {
 
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Mapa de tipos
   const tiposNombres = {
@@ -23,27 +24,60 @@ export default function ReportePedidosPorTipo() {
   };
 
   useEffect(() => {
+    setLoading(true);
     fetch("http://localhost:8080/api/report/reporte-por-pedido")
       .then(res => res.json())
-      .then(json => setData(json));
+      .then(json => {
+        console.log("Datos recibidos:", json);
+        setData(Array.isArray(json) ? json : []);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error("Error al cargar datos:", error);
+        setData([]);
+        setLoading(false);
+      });
   }, []);
 
   // Generar PDF
   const generarPDF = async () => {
-    const element = document.getElementById("pdf-content");
-    const canvas = await html2canvas(element);
-    const img = canvas.toDataURL("image/png");
+    try {
+      const element = document.getElementById("pdf-content");
+      if (!element) {
+        alert("No se pudo encontrar el contenido para generar el PDF");
+        return;
+      }
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
 
-    pdf.addImage(img, "PNG", 0, 0, width, height);
-    pdf.save("reporte_pedidos_por_tipo.pdf");
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+
+      pdf.addImage(imgData, "JPEG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.save("reporte_pedidos_por_tipo.pdf");
+      
+      alert("PDF generado exitosamente");
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      alert("Error al generar el PDF: " + error.message);
+    }
   };
 
-  // Datos del pastel
-  const totalGeneral = data.reduce((acc, item) => acc + item.total, 0);
+  // Calcular totales
+  const totalGeneral = data.reduce((acc, item) => acc + (Number(item.total) || 0), 0);
 
   const chartData = {
     labels: data.map(d => tiposNombres[d.tipo]),
@@ -56,15 +90,23 @@ export default function ReportePedidosPorTipo() {
     ]
   };
 
+  if (loading) {
+    return <div style={{ padding: 20 }}>Cargando datos...</div>;
+  }
+
+  if (data.length === 0) {
+    return <div style={{ padding: 20 }}>No hay datos disponibles</div>;
+  }
+
   return (
     <>
       <div id="pdf-content" style={{ padding: 20 }}>
         <h1>Reporte: Pedidos por Tipo</h1>
 
         {/* TABLA */}
-        <table border="1" cellPadding="6" style={{ width: "100%", marginTop: 20 }}>
+        <table border="1" cellPadding="6" style={{ width: "100%", marginTop: 20, borderCollapse: "collapse" }}>
           <thead>
-            <tr>
+            <tr style={{ backgroundColor: "#f0f0f0" }}>
               <th>Tipo</th>
               <th>Total</th>
               <th>Porcentaje</th>
@@ -72,7 +114,7 @@ export default function ReportePedidosPorTipo() {
           </thead>
           <tbody>
             {data.map((row, index) => {
-              const porcentaje = ((row.total / totalGeneral) * 100).toFixed(2);
+              const porcentaje = totalGeneral > 0 ? ((Number(row.total) / totalGeneral) * 100).toFixed(2) : 0;
               return (
                 <tr key={index}>
                   <td>{tiposNombres[row.tipo]}</td>
@@ -81,22 +123,33 @@ export default function ReportePedidosPorTipo() {
                 </tr>
               );
             })}
+            <tr style={{ backgroundColor: "#f0f0f0", fontWeight: "bold" }}>
+              <td>TOTAL</td>
+              <td>{totalGeneral}</td>
+              <td>100%</td>
+            </tr>
           </tbody>
         </table>
 
-        <h2 style={{ marginTop: 20 }}>
-          Total general: {totalGeneral}
-        </h2>
-
         {/* GRAFICA DE PASTEL */}
         <div style={{ width: "400px", margin: "auto", marginTop: "40px" }}>
+          <h3 style={{ textAlign: "center" }}>Distribución de Pedidos por Tipo</h3>
           <Pie data={chartData} />
         </div>
       </div>
 
       <button 
         onClick={generarPDF}
-        style={{ marginTop: 20, padding: 10, background: "#333", color: "#fff" }}
+        disabled={loading || data.length === 0}
+        style={{ 
+          marginTop: 20, 
+          padding: 10, 
+          background: (loading || data.length === 0) ? "#ccc" : "#333", 
+          color: "#fff",
+          border: "none",
+          borderRadius: 5,
+          cursor: (loading || data.length === 0) ? "not-allowed" : "pointer"
+        }}
       >
         Descargar PDF
       </button>

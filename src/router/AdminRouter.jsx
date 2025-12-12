@@ -15,7 +15,7 @@ export default function AdminRouter({ setRol }) {   // ← RECIBIR setRol AQUÍ
           {/* Redirección al dashboard por defecto */}
           <Route index element={<Navigate to="dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="mesas" element={<GestionMesas />} />
+          
 
           {/* ⚠️ Ruta de fallback opcional */}
           <Route

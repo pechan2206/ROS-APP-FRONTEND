@@ -29,9 +29,6 @@ export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
             <button onClick={() => navigate("/admin/dashboard")} className="hover:text-blue-600">
               Inicio
             </button>
-            <button onClick={() => navigate("/admin/mesas")} className="hover:text-blue-600">
-              Mesas
-            </button>
             <button onClick={() => navigate("/admin/reportes")} className="hover:text-blue-600">
               Reportes
             </button>

@@ -6,6 +6,7 @@ import Mesas from "../pages/mesero/Mesas";
 import Home from "../pages/mesero/Home";
 import Platos from "../pages/mesero/Platos";
 import DetallesPedido from "../pages/mesero/DetallesPedido";
+import CrearCliente from "../pages/mesero/CrearCliente";
 
 export default function MeseroRouter() {
   return (
@@ -23,6 +24,7 @@ export default function MeseroRouter() {
           <Route path="mesas" element={<Mesas />} />
           <Route path="pedidos/:id/platos" element={<Platos />} />    // Platos de un pedido
           <Route path="pedidos/detalles/:id" element={<DetallesPedido />} />
+          <Route path="crear-cliente" element= {<CrearCliente />} />
 
         </Routes>
       </main>

@@ -20,10 +20,10 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
   return (
     <button
       onClick={onClick}
-      className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 flex flex-col justify-between p-4 h-44 w-full text-left"
+      className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 flex flex-col justify-between p-4 h-48 w-full text-left"
     >
       {/* Encabezado */}
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between w-full mb-3">
         <h3 className="text-xl font-bold text-gray-800">
           Pedido #{pedido.idPedido}
         </h3>
@@ -36,32 +36,57 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
         </span>
       </div>
 
-      {/* Datos del pedido */}
-      <div>
-        <div className="text-left">
-          <p className="text-gray-500 text-xs">Total</p>
-          <p className="font-semibold text-gray-800">
-            {"$" + formatTotal(pedido.total)}
+      {/* Información condicional según tipo */}
+      <div className="mb-4 flex justify-between gap-6">
+
+        {/* COLUMNA IZQUIERDA */}
+        <div className="flex-1">
+          {pedido.tipo !== "Llevar" && (
+            <>
+              <p className="text-gray-500 text-xs mb-1">
+                {pedido.tipo === "Mesa" ? "Mesa" : "Dirección"}
+              </p>
+              <p
+                className="font-semibold text-gray-800 truncate"
+                title={
+                  pedido.tipo === "Mesa"
+                    ? pedido.mesa?.numero ?? "N/A"
+                    : pedido.cliente?.direccion ?? "N/A"
+                }
+              >
+                {pedido.tipo === "Mesa"
+                  ? pedido.mesa?.numero ?? "N/A"
+                  : pedido.cliente?.direccion ?? "N/A"}
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* COLUMNA DERECHA */}
+        <div className="flex-1">
+          <p className="text-gray-500 text-xs mb-1">Estado</p>
+          <p className="font-semibold text-gray-800 truncate">
+            {pedido.estado || "N/A"}
           </p>
         </div>
+
       </div>
-      <div className="w-full flex justify-between text-sm mt-4">
-        <div className="text-left">
-          <p className="text-gray-500 text-xs">Mesa</p>
-          <p className="font-semibold text-gray-800">
-            {pedido.mesa?.numero ?? "N/A"}
+
+
+
+      {/* Datos adicionales del pedido */}
+      <div className="flex justify-between items-center text-sm">
+        <div className="flex-1 pr-4">
+          <p className="text-gray-500 text-xs">Nombre</p>
+          <p className="font-semibold text-gray-800 truncate" title={pedido.cliente?.nombre || "N/A"}>
+            {pedido.cliente?.nombre || "N/A"}
           </p>
         </div>
 
-        <div className="text-right">
-          <p className="text-gray-500 text-xs">ID</p>
-          <p className="font-semibold text-gray-800">{pedido.idPedido}</p>
-        </div>
-
-        <div className="text-right">
-          <p className="text-gray-500 text-xs">Nombre</p>
-          <p className="font-semibold text-gray-800">
-            {pedido.cliente?.nombre || "N/A"}
+        <div className="flex-1 text-right">
+          <p className="text-gray-500 text-xs">Total</p>
+          <p className="font-bold text-gray-800">
+            {"$" + formatTotal(pedido.total)}
           </p>
         </div>
       </div>
@@ -71,5 +96,7 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
         className={`absolute bottom-0 left-0 w-full h-2 rounded-b-2xl ${estilo.chip}`}
       ></div>
     </button>
+
+
   );
 }
