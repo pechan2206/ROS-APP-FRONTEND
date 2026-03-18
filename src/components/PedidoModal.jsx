@@ -10,7 +10,7 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
   const SweetAlert = withReactContent(Swal);
   const navigate = useNavigate();
 
-  const esCancelado = pedido?.estado === "Cancelado";
+  const esCancelado = pedido?.estado === "Anulado";
 
   const [formData, setFormData] = useState({
     mesaId: pedido?.mesa?.idMesa || "",
@@ -80,10 +80,10 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
 
   const cambiarEstadoRapido = async (pedido, nuevoEstado) => {
     try {
-      await pedidoService.actualizar(pedido.idPedido, {
-        ...pedido,
-        estado: nuevoEstado,
-      });
+      const pedidoActualizado = { ...pedido, estado: nuevoEstado };
+      await pedidoService.actualizar(pedido.idPedido, pedidoActualizado);
+      onSave(pedidoActualizado);
+      onClose();
     } catch (error) {
       console.error("Error al cambiar estado:", error);
     }
@@ -236,12 +236,13 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
                   cancelButtonText: "No",
                 }).then((result) => {
                   if (result.isConfirmed) {
-                    cambiarEstadoRapido(pedido, "Cancelado");
-                    SweetAlert.fire({
-                      icon: "success",
-                      title: "Pedido cancelado",
-                      timer: 1500,
-                      showConfirmButton: false,
+                    cambiarEstadoRapido(pedido, "Anulado").then(() => {
+                      SweetAlert.fire({
+                        icon: "success",
+                        title: "Pedido cancelado",
+                        timer: 1500,
+                        showConfirmButton: false,
+                      });
                     });
                   }
                 });
@@ -251,6 +252,7 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
               Cancelar
             </button>
           )}
+
 
           {!esCancelado && (
             <button

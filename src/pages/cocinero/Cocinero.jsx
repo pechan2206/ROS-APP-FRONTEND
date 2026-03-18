@@ -22,7 +22,8 @@ export default function Cocina() {
         "Pendiente",
         "En_preparacion",
         "Entregado",
-        "Cancelado",
+        "Anulado",
+        "Pagado",
       ];
 
       const pedidosCocina = data.filter((p) =>
@@ -57,7 +58,7 @@ export default function Cocina() {
     en_preparacion: pedidos.filter((p) => p.estado === "En_preparacion")
       .length,
     entregados: pedidos.filter((p) => p.estado === "Entregado").length,
-    cancelados: pedidos.filter((p) => p.estado === "Cancelado").length,
+    cancelados: pedidos.filter((p) => p.estado === "Anulado").length,
   };
 
   const abrirModal = (pedido) => {
@@ -206,9 +207,9 @@ export default function Cocina() {
         </button>
 
         <button
-          onClick={() => setFiltroEstado("Cancelado")}
+          onClick={() => setFiltroEstado("Anulado")}
           className={`px-4 py-2 rounded-full font-semibold border flex items-center gap-2 transition ${
-            filtroEstado === "Cancelado"
+            filtroEstado === "Anulado"
               ? "bg-red-500 text-white border-red-500"
               : "bg-red-100 text-red-700 border-red-300 hover:bg-red-200"
           }`}
@@ -216,7 +217,7 @@ export default function Cocina() {
           <span>❌ Cancelados</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full ${
-              filtroEstado === "Cancelado"
+              filtroEstado === "Anulado"
                 ? "bg-white text-red-700"
                 : "bg-red-300 text-red-900"
             }`}

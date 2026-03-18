@@ -21,7 +21,7 @@ export default function Navbar({ nombre = "Juan" }) {
           onClick={() => navigate("/home")}
           className="text-2xl font-bold text-gray-800 tracking-tight cursor-pointer"
         >
-          🍽️ Restaurante <span className="text-blue-600">Pancho Paisa</span>
+          Restaurante <span className="text-blue-600">Pancho Paisa</span>
         </h1>
 
         {/* Navegación + usuario */}
