@@ -1,71 +1,68 @@
-const API_URL = "http://localhost:8080/api/detalles-pedido";
+import api from '../config/api'; // ajusta la ruta según tu estructura de carpetas
 
 export const detallePedidoService = {
-  listar: async () => {
-    const res = await fetch(API_URL);
-    return res.json();
-  },
+    listar: async () => {
+        const res = await api.get('/detalles-pedido');
+        return res.data;
+    },
 
-  obtenerPorId: async (id) => {
-    const res = await fetch(`${API_URL}/${id}`);
-    return res.json();
-  },
+    obtenerPorId: async (id) => {
+        const res = await api.get(`/detalles-pedido/${id}`);
+        return res.data;
+    },
 
-  crear: async (detallePedido) => {
-    const cuerpo = {
-      pedido: { idPedido: detallePedido.pedido?.idPedido },
-      plato: { idPlato: detallePedido.plato?.idPlato },
-      cantidad: detallePedido.cantidad,
-      precioUnitario: detallePedido.precioUnitario ?? detallePedido.precio,
-      subtotal:
-        (detallePedido.precioUnitario ?? detallePedido.precio) *
-        detallePedido.cantidad,
-    };
+    crear: async (detallePedido) => {
+        const cuerpo = {
+            pedido: { idPedido: detallePedido.pedido?.idPedido },
+            plato: { idPlato: detallePedido.plato?.idPlato },
+            cantidad: detallePedido.cantidad,
+            precioUnitario: detallePedido.precioUnitario ?? detallePedido.precio,
+            subtotal:
+                (detallePedido.precioUnitario ?? detallePedido.precio) *
+                detallePedido.cantidad,
+        };
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
-    });
+        try {
+            const res = await api.post('/detalles-pedido', cuerpo);
+            return res.data;
+        } catch (error) {
+            const errorMessage =
+                error.response?.data?.message ||
+                JSON.stringify(error.response?.data) ||
+                error.message ||
+                'Error al crear detalle de pedido';
+            throw new Error(errorMessage);
+        }
+    },
 
-    if (!res.ok) {
-      throw new Error("Error al crear detalle de pedido");
-    }
+    eliminar: async (id) => {
+        await api.delete(`/detalles-pedido/${id}`);
+    },
 
-    return res.json();
-  },
+    listarPorPedido: async (idPedido) => {
+        const res = await api.get(`/detalles-pedido/pedido/${idPedido}`);
+        return res.data;
+    },
 
+    actualizar: async (id, detallePedido) => {
+        const cuerpo = {
+            pedido: { idPedido: detallePedido.pedido?.idPedido },
+            plato: { idPlato: detallePedido.plato?.idPlato },
+            cantidad: detallePedido.cantidad,
+            precioUnitario: detallePedido.precioUnitario,
+            subtotal: detallePedido.subtotal,
+        };
 
-  eliminar: async (id) => {
-    await fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    });
-  },
-
-  listarPorPedido: async (idPedido) => {
-    const res = await fetch(`${API_URL}/pedido/${idPedido}`);
-    return res.json();
-  },
-  actualizar: async (id, detallePedido) => {
-    const cuerpo = {
-      pedido: { idPedido: detallePedido.pedido?.idPedido },
-      plato: { idPlato: detallePedido.plato?.idPlato },
-      cantidad: detallePedido.cantidad,
-      precioUnitario: detallePedido.precioUnitario,
-      subtotal: detallePedido.subtotal,
-    };
-
-    const res = await fetch(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
-    });
-
-    if (!res.ok) {
-      throw new Error("Error al actualizar detalle de pedido");
-    }
-
-    return res.json();
-  },
-
+        try {
+            const res = await api.put(`/detalles-pedido/${id}`, cuerpo);
+            return res.data;
+        } catch (error) {
+            const errorMessage =
+                error.response?.data?.message ||
+                JSON.stringify(error.response?.data) ||
+                error.message ||
+                'Error al actualizar detalle de pedido';
+            throw new Error(errorMessage);
+        }
+    },
 };

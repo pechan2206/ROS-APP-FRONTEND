@@ -10,6 +10,8 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
   const SweetAlert = withReactContent(Swal);
   const navigate = useNavigate();
 
+  const esCancelado = pedido?.estado === "Cancelado";
+
   const [formData, setFormData] = useState({
     mesaId: pedido?.mesa?.idMesa || "",
     clienteTelefono: pedido?.cliente?.telefono || "",
@@ -21,7 +23,6 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
   const [sugerencias, setSugerencias] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Actualiza formData si cambia el pedido
   useEffect(() => {
     setFormData({
       mesaId: pedido?.mesa?.idMesa || "",
@@ -34,8 +35,8 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
     setShowSuggestions(false);
   }, [pedido]);
 
-  // Manejo de cambios en inputs
   const handleChange = async (e) => {
+    if (esCancelado) return;
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -45,7 +46,7 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
         setSugerencias(clientes);
         setShowSuggestions(true);
       } catch (error) {
-        console.error("Error al buscar clientes por teléfono:", error);
+        console.error("Error al buscar clientes:", error);
         setSugerencias([]);
         setShowSuggestions(false);
       }
@@ -54,19 +55,17 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
     }
   };
 
-  // Selección de sugerencia
   const seleccionarSugerencia = (telefono) => {
+    if (esCancelado) return;
     setFormData((prev) => ({ ...prev, clienteTelefono: telefono }));
     setShowSuggestions(false);
   };
 
-  // Formateo del total
   const formatTotal = (num) => {
-    if (num === null || num === undefined) return "";
+    if (num == null) return "";
     return Number(num).toLocaleString("es-CO");
   };
 
-  // Guardar pedido
   const handleSubmit = () => {
     onSave({
       ...pedido,
@@ -90,6 +89,8 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
     }
   };
 
+  const inputClass = `border w-full px-2 py-1 rounded ${esCancelado ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-80 relative">
@@ -99,48 +100,56 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
           </h2>
           <button
             onClick={onClose}
-            className="text-red-500 hover:text-red-700 font-bold text-2xl transition-colors duration-200"
+            className="text-red-500 hover:text-red-700 font-bold text-2xl"
           >
             ✖
           </button>
         </div>
 
-        {/* Tipo de pedido */}
+        {esCancelado && (
+          <div className="mb-3 px-3 py-2 bg-red-100 text-red-600 text-sm rounded-md text-center font-semibold">
+            Pedido anulado
+          </div>
+        )}
+
         <SelectTipoPedido
           name="tipo"
           label="Tipo de pedido"
           value={formData.tipo}
           onChange={handleChange}
+          disabled={esCancelado}
+          required
         />
 
-        {/* Número de mesa solo si es tipo "Mesa" */}
         {formData.tipo === "Mesa" && (
           <div className="mb-3">
             <label className="block mb-2">Número de Mesa</label>
             <input
               type="number"
               name="mesaId"
-              className="border w-full px-2 py-1 rounded"
+              className={inputClass}
               value={formData.mesaId}
               onChange={handleChange}
+              disabled={esCancelado}
+              required
             />
           </div>
         )}
 
-        {/* Teléfono del cliente con autocomplete */}
         <div className="mb-3 relative">
           <label className="block mb-2">Teléfono del Cliente</label>
           <input
             type="text"
             name="clienteTelefono"
-            className="border w-full px-2 py-1 rounded"
+            className={inputClass}
             value={formData.clienteTelefono}
             onChange={handleChange}
             autoComplete="off"
+            disabled={esCancelado}
+            required
           />
 
-          {/* Sugerencias */}
-          {showSuggestions && (
+          {showSuggestions && !esCancelado && (
             <ul className="absolute z-10 bg-white border w-full mt-1 max-h-40 overflow-y-auto rounded shadow">
               {sugerencias.length > 0 ? (
                 sugerencias.map((cliente) => (
@@ -148,6 +157,7 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
                     key={cliente.idCliente}
                     className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
                     onClick={() => seleccionarSugerencia(cliente.telefono)}
+                    required
                   >
                     {cliente.telefono} - {cliente.nombre}
                   </li>
@@ -167,44 +177,56 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
           )}
         </div>
 
-        {/* Total */}
         <label className="block mb-2">Total</label>
         <input
           type="text"
-          className="border w-full px-2 py-1 rounded mb-3"
+          className={inputClass}
           value={formatTotal(formData.total)}
           readOnly
         />
 
-        {/* Botones */}
         <div className="flex justify-end gap-2 mt-4 flex-wrap">
-          {/* Ver detalles */}
-          {/* Ver detalles */}
-          {pedido?.idPedido && pedido?.estado !== "Cancelado" && (
+          {pedido?.idPedido && !esCancelado && (
             <button
-              className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md shadow hover:bg-green-700 hover:shadow-lg transition-all duration-200"
+              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md shadow hover:bg-green-700"
               onClick={() => navigate(`detalles/${pedido.idPedido}`)}
             >
               Ver detalles
             </button>
           )}
 
-          {/* Agregar productos */}
-          {pedido?.idPedido && pedido?.estado !== "Cancelado" && (
+          {pedido?.idPedido && !esCancelado && (
             <button
-              className="px-3 py-1.5 text-sm bg-yellow-500 text-white rounded-md shadow hover:bg-yellow-600 hover:shadow-lg transition-all duration-200"
+              className="px-3 py-1.5 bg-yellow-500 text-white text-sm rounded-md shadow hover:bg-yellow-600"
               onClick={() => navigate(`${pedido.idPedido}/platos`)}
             >
               Agregar productos
             </button>
           )}
 
-          {/* Cancelar pedido */}
-          {pedido?.idPedido && pedido?.estado !== "Cancelado" && (
+          {pedido?.idPedido && !esCancelado && (
+            <button
+              className="p-2 bg-purple-600 text-white rounded-md shadow hover:bg-purple-700"
+              onClick={() =>
+                navigate(`/mesero/pedido/${pedido.idPedido}/imprimir`)
+              }
+              title="Imprimir pedido"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="white"
+              >
+                <path d="M6 9V2h12v7h2v8h-4v4H8v-4H4V9h2zm2-5v5h8V4H8zm8 14v-4H8v4h8z" />
+              </svg>
+            </button>
+          )}
+
+          {pedido?.idPedido && !esCancelado && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-
                 SweetAlert.fire({
                   title: "¿Cancelar pedido?",
                   text: "Esta acción no se puede deshacer.",
@@ -212,41 +234,32 @@ export default function PedidoModal({ pedido, onClose, onSave }) {
                   showCancelButton: true,
                   confirmButtonText: "Sí, cancelar",
                   cancelButtonText: "No",
-                  confirmButtonColor: "#d33",
-                  cancelButtonColor: "#3085d6",
                 }).then((result) => {
                   if (result.isConfirmed) {
                     cambiarEstadoRapido(pedido, "Cancelado");
-
                     SweetAlert.fire({
                       icon: "success",
                       title: "Pedido cancelado",
-                      text: "El pedido fue cancelado correctamente.",
                       timer: 1500,
                       showConfirmButton: false,
                     });
                   }
                 });
               }}
-              className="px-4 py-2.5 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition shadow-md hover:shadow-lg flex items-center justify-center"
-              title="Cancelar pedido"
+              className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md shadow"
             >
-              Cancelar pedido
+              Cancelar
             </button>
           )}
 
-          {/* Guardar */}
-          {pedido?.estado !== "Cancelado" && (
+          {!esCancelado && (
             <button
-              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 hover:shadow-lg transition-all duration-200"
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md shadow hover:bg-blue-700"
               onClick={handleSubmit}
             >
               Guardar
             </button>
           )}
-
-
-
         </div>
       </div>
     </div>

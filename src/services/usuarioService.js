@@ -1,229 +1,61 @@
-// usuarioService.js
+import api from '../config/api';
 
-const API_URL = 'http://localhost:8080/api/usuarios';
-
-/**
- * Obtiene el token JWT del localStorage
- */
-const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-/**
- * Verifica si el token existe y no ha expirado
- */
-const isTokenValid = () => {
-  const token = getToken();
-  if (!token) return false;
-
-  try {
-    // Decodificar el payload del JWT (parte central del token)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    
-    // Verificar si el token ha expirado
-    const currentTime = Math.floor(Date.now() / 1000);
-    return payload.exp > currentTime;
-  } catch (error) {
-    console.error('Error al validar token:', error);
-    return false;
-  }
-};
-
-/**
- * Obtiene los headers con el token JWT
- */
-const getAuthHeaders = () => {
-  const token = getToken();
-  return {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  };
-};
-
-/**
- * Maneja errores de las peticiones
- */
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      // Token inválido o expirado
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-    }
-    
-    const error = await response.json().catch(() => ({ message: 'Error en la petición' }));
-    throw new Error(error.message || `Error: ${response.status}`);
-  }
-  
-  // Si la respuesta está vacía (como en DELETE), retornar null
-  const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    return null;
-  }
-  
-  return response.json();
-};
-
-/**
- * Servicio de Usuarios
- */
 export const usuarioService = {
-  /**
-   * Listar todos los usuarios
-   * GET /api/usuarios
-   */
-  listar: async () => {
-    if (!isTokenValid()) {
-      throw new Error('Token inválido o expirado');
-    }
+    listar: async () => {
+        const res = await api.get('/usuarios');
+        return res.data;
+    },
 
-    try {
-      const response = await fetch(API_URL, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-      
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('Error al listar usuarios:', error);
-      throw error;
-    }
-  },
+    buscarPorId: async (id) => {
+        const res = await api.get(`/usuarios/${id}`);
+        return res.data;
+    },
 
-  /**
-   * Buscar usuario por ID
-   * GET /api/usuarios/{id}
-   */
-  buscarPorId: async (id) => {
-    if (!isTokenValid()) {
-      throw new Error('Token inválido o expirado');
-    }
+    guardar: async (usuario) => {
+        const res = await api.post('/usuarios', usuario);
+        return res.data;
+    },
 
-    try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-      
-      return await handleResponse(response);
-    } catch (error) {
-      console.error(`Error al buscar usuario ${id}:`, error);
-      throw error;
-    }
-  },
+    actualizar: async (id, usuario) => {
+        const res = await api.put(`/usuarios/${id}`, usuario);
+        return res.data;
+    },
 
-  /**
-   * Guardar nuevo usuario
-   * POST /api/usuarios
-   */
-  guardar: async (usuario) => {
-    if (!isTokenValid()) {
-      throw new Error('Token inválido o expirado');
-    }
+    eliminar: async (id) => {
+        await api.delete(`/usuarios/${id}`);
+    },
 
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(usuario)
-      });
-      
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('Error al guardar usuario:', error);
-      throw error;
-    }
-  },
+    setToken: (token) => {
+        localStorage.setItem('token', token);
+    },
 
-  /**
-   * Actualizar usuario existente
-   * PUT /api/usuarios/{id}
-   */
-  actualizar: async (id, usuario) => {
-    if (!isTokenValid()) {
-      throw new Error('Token inválido o expirado');
-    }
+    removeToken: () => {
+        localStorage.removeItem('token');
+    },
 
-    try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(usuario)
-      });
-      
-      return await handleResponse(response);
-    } catch (error) {
-      console.error(`Error al actualizar usuario ${id}:`, error);
-      throw error;
-    }
-  },
+    getUserFromToken: () => {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        try {
+            return JSON.parse(atob(token.split('.')[1]));
+        } catch {
+            return null;
+        }
+    },
 
-  /**
-   * Eliminar usuario
-   * DELETE /api/usuarios/{id}
-   */
-  eliminar: async (id) => {
-    if (!isTokenValid()) {
-      throw new Error('Token inválido o expirado');
-    }
+    isAuthenticated: () => {
+        const token = localStorage.getItem('token');
+        if (!token) return false;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.exp > Math.floor(Date.now() / 1000);
+        } catch {
+            return false;
+        }
+    },
 
-    try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-      
-      return await handleResponse(response);
-    } catch (error) {
-      console.error(`Error al eliminar usuario ${id}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Guardar el token JWT en localStorage
-   */
-  setToken: (token) => {
-    localStorage.setItem('token', token);
-  },
-
-  /**
-   * Eliminar el token JWT del localStorage
-   */
-  removeToken: () => {
-    localStorage.removeItem('token');
-  },
-
-  /**
-   * Obtener información del usuario desde el token
-   */
-  getUserFromToken: () => {
-    const token = getToken();
-    if (!token) return null;
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload;
-    } catch (error) {
-      console.error('Error al decodificar token:', error);
-      return null;
-    }
-  },
-
-  /**
-   * Verificar si el usuario está autenticado
-   */
-  isAuthenticated: () => {
-    return isTokenValid();
-  },
-
-  /**
-   * Cerrar sesión (logout)
-   */
-  logout: () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  }
+    logout: () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    },
 };
-

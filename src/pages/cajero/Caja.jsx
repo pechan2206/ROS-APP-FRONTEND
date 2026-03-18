@@ -5,32 +5,29 @@ import { metodoPagoService } from "../../services/metodoPagoService";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
+const SweetAlert = withReactContent(Swal);
+
 export default function Caja() {
   const [pedidosEntregados, setPedidosEntregados] = useState([]);
   const [ingresos, setIngresos] = useState([]);
   const [metodosPago, setMetodosPago] = useState([]);
   const [loading, setLoading] = useState(true);
-  const SweetAlert = withReactContent(Swal);
 
-  // Cargar datos iniciales
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      
-      // Cargar pedidos entregados
+
       const todosPedidos = await pedidoService.listar();
       const entregados = todosPedidos.filter((p) => p.estado === "Entregado");
       setPedidosEntregados(entregados);
 
-      // Cargar ingresos del día
       const todosIngresos = await ingresoService.listar();
       const hoy = new Date().toISOString().split("T")[0];
       const ingresosHoy = todosIngresos.filter(
-        (i) => i.fecha === hoy
+        (i) => i.fecha?.split("T")[0] === hoy,
       );
       setIngresos(ingresosHoy);
 
-      // Cargar métodos de pago
       const metodos = await metodoPagoService.listar();
       setMetodosPago(metodos);
     } catch (error) {
@@ -45,7 +42,6 @@ export default function Caja() {
     cargarDatos();
   }, []);
 
-  // Registrar cobro
   const registrarCobro = async (pedido) => {
     const { value: formValues } = await SweetAlert.fire({
       title: `Cobrar Pedido #${pedido.idPedido}`,
@@ -54,7 +50,7 @@ export default function Caja() {
           <div class="bg-gray-50 p-4 rounded-lg mb-4">
             <p class="text-sm text-gray-600">Total a cobrar:</p>
             <p class="text-3xl font-bold text-green-600">$${Number(
-              pedido.total || 0
+              pedido.total || 0,
             ).toLocaleString("es-CO")}</p>
           </div>
           
@@ -65,8 +61,7 @@ export default function Caja() {
             <select id="metodoPago" class="swal2-input w-full">
               ${metodosPago
                 .map(
-                  (m) =>
-                    `<option value="${m.idMetodo}">${m.nombre}</option>`
+                  (m) => `<option value="${m.idMetodo}">${m.nombre}</option>`,
                 )
                 .join("")}
             </select>
@@ -79,8 +74,8 @@ export default function Caja() {
             <input id="descripcion" class="swal2-input w-full" 
                    placeholder="Ej: Pago pedido mesa 5" 
                    value="Cobro pedido #${pedido.idPedido} - Mesa ${
-        pedido.mesa?.numero || "N/A"
-      }">
+                     pedido.mesa?.numero || "N/A"
+                   }">
           </div>
         </div>
       `,
@@ -99,7 +94,6 @@ export default function Caja() {
 
     if (formValues) {
       try {
-        // Crear ingreso
         const nuevoIngreso = {
           monto: pedido.total,
           descripcion: formValues.descripcion,
@@ -112,10 +106,9 @@ export default function Caja() {
         SweetAlert.fire({
           icon: "success",
           title: "¡Cobro registrado!",
-          text: `Se registró el cobro de $${Number(
-            pedido.total
-          ).toLocaleString("es-CO")}`,
+          text: `Se registró el cobro de $${Number(pedido.total).toLocaleString("es-CO")}`,
           timer: 2000,
+          showConfirmButton: false,
         });
 
         cargarDatos();
@@ -126,7 +119,6 @@ export default function Caja() {
     }
   };
 
-  // Calcular total de ingresos del día
   const totalIngresos = ingresos.reduce((sum, ing) => sum + ing.monto, 0);
 
   if (loading) {
@@ -139,7 +131,6 @@ export default function Caja() {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">💰 Caja</h1>
         <button
@@ -150,7 +141,6 @@ export default function Caja() {
         </button>
       </div>
 
-      {/* Resumen del día */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
           <p className="text-sm text-green-700 font-semibold">Ingresos Hoy</p>
@@ -178,7 +168,6 @@ export default function Caja() {
         </div>
       </div>
 
-      {/* Pedidos por cobrar */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4">📋 Pedidos Entregados</h2>
 
@@ -230,7 +219,6 @@ export default function Caja() {
         )}
       </div>
 
-      {/* Historial de ingresos del día */}
       <div>
         <h2 className="text-2xl font-bold mb-4">📊 Ingresos del Día</h2>
 
@@ -264,7 +252,7 @@ export default function Caja() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {ingreso.metodoPago.nombre}
+                        {ingreso.metodoPago?.nombre || "N/A"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">

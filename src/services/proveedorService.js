@@ -1,49 +1,36 @@
-const API_URL = "http://localhost:8080/api/proveedores";
+import api from '../config/api';
 
 export const proveedorService = {
-  listar: async () => {
-    const res = await fetch(API_URL);
-    return res.json();
-  },
+    listar: async () => {
+        const res = await api.get('/proveedores');
+        return res.data;
+    },
 
-  obtenerPorId: async (id) => {
-    const res = await fetch(`${API_URL}/${id}`);
-    return res.json();
-  },
+    obtenerPorId: async (id) => {
+        const res = await api.get(`/proveedores/${id}`);
+        return res.data;
+    },
 
-  guardar: async (proveedor) => {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(proveedor),
-    });
+    guardar: async (proveedor) => {
+        try {
+            const res = await api.post('/proveedores', proveedor);
+            return res.data;
+        } catch (error) {
+            const errorMessage =
+                error.response?.data?.message ||
+                JSON.stringify(error.response?.data) ||
+                error.message ||
+                'Error desconocido';
+            throw new Error(errorMessage);
+        }
+    },
 
-    if (!res.ok) {
-      let errorMessage = "Error desconocido";
-      try {
-        const errorData = await res.json();
-        errorMessage = errorData.message || JSON.stringify(errorData);
-      } catch {
-        errorMessage = await res.text();
-      }
-      throw new Error(errorMessage);
-    }
+    actualizar: async (id, proveedor) => {
+        const res = await api.put(`/proveedores/${id}`, proveedor);
+        return res.data;
+    },
 
-    return res.json();
-  },
-
-  actualizar: async (id, proveedor) => {
-    const res = await fetch(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(proveedor),
-    });
-    return res.json();
-  },
-
-  eliminar: async (id) => {
-    await fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    });
-  },
+    eliminar: async (id) => {
+        await api.delete(`/proveedores/${id}`);
+    },
 };

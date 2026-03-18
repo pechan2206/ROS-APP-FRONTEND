@@ -34,7 +34,7 @@ export default function DashboardAdmin() {
     }
 
     try {
-      const res = await fetch("http://localhost:8080/api/email/enviar-json", {
+      const res = await fetch("https://remarkable-grace-production.up.railway.app/api/email/enviar-json", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ destino, asunto, mensaje }),
@@ -65,7 +65,7 @@ export default function DashboardAdmin() {
     }
 
     try {
-      const res = await fetch("http://localhost:8080/api/email/enviar-a-usuarios", {
+      const res = await fetch("https://remarkable-grace-production.up.railway.app/api/email/enviar-a-usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ asunto: asuntoMasivo, mensaje: mensajeMasivo }),

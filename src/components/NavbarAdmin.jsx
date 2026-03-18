@@ -21,30 +21,47 @@ export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
           onClick={() => navigate("/admin/dashboard")}
           className="text-2xl font-bold text-gray-800 tracking-tight cursor-pointer"
         >
-          🧾 Panel <span className="text-blue-600">Administrador</span>
+          Panel <span className="text-blue-600">Administrador</span>
         </h1>
 
         <div className="flex items-center ml-auto space-x-8">
           <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
-            <button onClick={() => navigate("/admin/dashboard")} className="hover:text-blue-600">
+            <button
+              onClick={() => navigate("/admin/dashboard")}
+              className="hover:text-blue-600"
+            >
               Inicio
             </button>
-            <button onClick={() => navigate("/admin/reportes")} className="hover:text-blue-600">
-              Reportes
-            </button >
-            <button onClick={() => navigate("/admin/usuarios")} className="hover:text-blue-600">
+            <button
+              onClick={() => navigate("/admin/usuarios")}
+              className="hover:text-blue-600"
+            >
               Usuarios
             </button>
-            <button onClick={() => navigate("/admin/clientes")} className="hover:text-blue-600">
+            <button
+              onClick={() => navigate("/admin/clientes")}
+              className="hover:text-blue-600"
+            >
               Clientes
             </button>
-            <button onClick={() => navigate("/admin/productos")} className="hover:text-blue-600">
+            <button
+              onClick={() => navigate("/admin/productos")}
+              className="hover:text-blue-600"
+            >
               Productos
             </button>
-           <button onClick={() => navigate("/admin/proveedores")} className="hover:text-blue-600">
+            <button
+              onClick={() => navigate("/admin/proveedores")}
+              className="hover:text-blue-600"
+            >
               Proveedores
             </button>
-            
+            <button
+              onClick={() => navigate("/admin/reportes")}
+              className="hover:text-blue-600"
+            >
+              Reportes
+            </button>
           </nav>
 
           <div className="relative">
@@ -55,7 +72,9 @@ export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
               <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
                 {nombre[0]}
               </div>
-              <span className="font-medium text-gray-800 hidden sm:block">{nombre}</span>
+              <span className="font-medium text-gray-800 hidden sm:block">
+                {nombre}
+              </span>
               <ChevronDownIcon className="h-4 w-4 text-gray-600" />
             </button>
 

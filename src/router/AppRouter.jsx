@@ -5,7 +5,8 @@ import Register from "../pages/Register";
 import AdminRouter from "./AdminRouter";
 import MeseroRouter from "./MeseroRouter";
 import CocineroRouter from "./CocineroRouter";
-import CajeroRouter from "./CajeroRouter";  // ← AGREGAR ESTA LÍNEA
+import CajeroRouter from "./CajeroRouter"; 
+import PedidoImprimir from "../pages/PedidoImprimir";
 
 export default function AppRouter() {
   const [rol, setRol] = useState(localStorage.getItem("rol"));
@@ -38,6 +39,8 @@ export default function AppRouter() {
         {rol === "Mesero" && (
           <Route path="/mesero/*" element={<MeseroRouter setRol={setRol} />} />
         )}
+        
+        <Route path="/mesero/pedido/:id/imprimir" element={<PedidoImprimir />} />
 
         {/* Cocinero routes */}
         {rol === "Cocinero" && (

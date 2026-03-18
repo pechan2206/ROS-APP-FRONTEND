@@ -37,12 +37,6 @@ export default function Navbar({ nombre = "Juan" }) {
             <button onClick={() => navigate("/mesero/mesas")} className="hover:text-blue-600">
               Mesas
             </button>
-            <button onClick={() => navigate("/mesero/procesos")} className="hover:text-blue-600">
-              Procesos
-            </button>
-            <button onClick={() => navigate("/mesero/informes")} className="hover:text-blue-600">
-              Informes
-            </button>
           </nav>
 
           {/* Usuario */}

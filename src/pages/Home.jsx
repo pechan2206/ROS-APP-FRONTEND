@@ -4,13 +4,15 @@ import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const navigate = useNavigate();
+  const rol = localStorage.getItem("rol");
 
   const opciones = [
     { nombre: "Mesas", ruta: "/mesas", color: "bg-green-500" },
     { nombre: "Administración", ruta: "/administracion", color: "bg-blue-500" },
     { nombre: "Procesos", ruta: "/procesos", color: "bg-yellow-500" },
-    { nombre: "Informes", ruta: "/informes", color: "bg-purple-500" },
+
   ];
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -23,7 +25,7 @@ export default function Home() {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {opciones.map((op, i) => (
+            {opcionesFiltradas.map((op, i) => (
               <button
                 key={i}
                 onClick={() => navigate(op.ruta)}

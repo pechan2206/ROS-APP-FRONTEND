@@ -16,7 +16,6 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
     return Number(num).toLocaleString("es-CO");
   };
 
-
   return (
     <button
       onClick={onClick}
@@ -38,26 +37,24 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
 
       {/* Información condicional según tipo */}
       <div className="mb-4 flex justify-between gap-6">
-
         {/* COLUMNA IZQUIERDA */}
         <div className="flex-1">
-          {pedido.tipo !== "Llevar" && (
+          {pedido.tipo === "Mesa" && (
             <>
-              <p className="text-gray-500 text-xs mb-1">
-                {pedido.tipo === "Mesa" ? "Mesa" : "Dirección"}
-              </p>
+              <p className="text-gray-500 text-xs mb-1">Mesa</p>
               <p
                 className="font-semibold text-gray-800 truncate"
-                title={
-                  pedido.tipo === "Mesa"
-                    ? pedido.mesa?.numero ?? "N/A"
-                    : pedido.cliente?.direccion ?? "N/A"
-                }
+                title={pedido.mesa?.numero ?? "N/A"}
               >
-                {pedido.tipo === "Mesa"
-                  ? pedido.mesa?.numero ?? "N/A"
-                  : pedido.cliente?.direccion ?? "N/A"}
+                {pedido.mesa?.numero ?? "N/A"}
               </p>
+            </>
+          )}
+
+          {pedido.tipo === "Llevar" && (
+            <>
+              <p className="text-gray-500 text-xs mb-1">Para llevar</p>
+              <p className="font-semibold text-gray-800 truncate">—</p>
             </>
           )}
         </div>
@@ -69,16 +66,16 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
             {pedido.estado || "N/A"}
           </p>
         </div>
-
       </div>
-
-
 
       {/* Datos adicionales del pedido */}
       <div className="flex justify-between items-center text-sm">
         <div className="flex-1 pr-4">
           <p className="text-gray-500 text-xs">Nombre</p>
-          <p className="font-semibold text-gray-800 truncate" title={pedido.cliente?.nombre || "N/A"}>
+          <p
+            className="font-semibold text-gray-800 truncate"
+            title={pedido.cliente?.nombre || "N/A"}
+          >
             {pedido.cliente?.nombre || "N/A"}
           </p>
         </div>
@@ -96,7 +93,5 @@ export default function PedidoCard({ pedido, onClick, eliminarPedido }) {
         className={`absolute bottom-0 left-0 w-full h-2 rounded-b-2xl ${estilo.chip}`}
       ></div>
     </button>
-
-
   );
 }

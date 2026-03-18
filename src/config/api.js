@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL base del backend Spring Boot
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'https://remarkable-grace-production.up.railway.app/api';
 
 // Instancia de axios configurada
 const api = axios.create({

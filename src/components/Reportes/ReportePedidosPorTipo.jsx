@@ -27,7 +27,7 @@ export default function ReportePedidosPorTipo() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8080/api/report/reporte-por-pedido")
+    fetch("https://remarkable-grace-production.up.railway.app/api/report/reporte-por-pedido")
       .then(res => res.json())
       .then(json => {
         console.log("Datos recibidos:", json);
