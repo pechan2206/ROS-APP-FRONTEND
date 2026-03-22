@@ -1,4 +1,4 @@
-import api from '../config/api'; // ajusta la ruta según tu estructura de carpetas
+import api from '../config/api';
 
 export const detallePedidoService = {
     listar: async () => {
