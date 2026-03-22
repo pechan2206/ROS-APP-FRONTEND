@@ -23,6 +23,7 @@ export default function SelectTipoPedido({ value, onChange, label, name }) {
   if (loading) return <p>Cargando {label}...</p>;
 
   return (
+    
     <div className="mb-3">
       {label && <label className="block mb-1 font-semibold">{label}</label>}
       <select

@@ -131,8 +131,7 @@ export default function Platos() {
   const cantidadEnCarrito = (idPlato) => carrito.find(p => p.idPlato === idPlato)?.cantidad || 0;
   const totalItems = carrito.reduce((s,p) => s+p.cantidad, 0);
   const subtotal = carrito.reduce((s,p) => s+Number(p.precio)*p.cantidad, 0);
-  const iva = Math.round(subtotal * 0.08);
-  const total = subtotal + iva;
+  const total = subtotal;
 
   const guardarPedido = async () => {
     const confirm = await MySwal.fire({title:"¿Guardar pedido?",text:"Se agregarán los platos seleccionados al pedido",icon:"question",showCancelButton:true,confirmButtonText:"Sí, guardar",cancelButtonText:"Cancelar",confirmButtonColor:C.primary,cancelButtonColor:C.danger});
@@ -249,7 +248,6 @@ export default function Platos() {
             {carrito.length>0&&(
               <div style={{padding:"1rem 1.25rem",borderTop:`1px solid ${C.border}`,background:C.surface,display:"flex",flexDirection:"column",gap:"0.35rem"}}>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.82rem",color:C.muted}}><span>Subtotal</span><span>{formatCOP(subtotal)}</span></div>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.82rem",color:C.muted}}><span>IVA (8%)</span><span>{formatCOP(iva)}</span></div>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:"1rem",fontWeight:700,color:C.text,borderTop:`1px solid ${C.border2}`,marginTop:"0.2rem",paddingTop:"0.6rem"}}><span>Total</span><span>{formatCOP(total)}</span></div>
                 <div style={{display:"flex",gap:"0.5rem",marginTop:"0.4rem"}}>
                   <button onClick={()=>setCarrito([])} style={{fontFamily:F,padding:"0.55rem 0.75rem",borderRadius:"8px",border:`1px solid ${C.border2}`,background:C.white,color:C.muted,fontSize:"0.78rem",fontWeight:600,cursor:"pointer",transition:"all 0.15s"}} onMouseEnter={e=>{e.currentTarget.style.background=C.dangerLight;e.currentTarget.style.color=C.danger;e.currentTarget.style.borderColor=C.danger;}} onMouseLeave={e=>{e.currentTarget.style.background=C.white;e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor=C.border2;}}>🗑️</button>
