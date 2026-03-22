@@ -1,28 +1,14 @@
 import { useState } from "react";
-import { FileText, TrendingUp, Users, Package, Calendar, Download } from "lucide-react";
+import { FileText, TrendingUp, Users, Package, Calendar, Download, X } from "lucide-react";
 import ReportePedidosPorTipo from "../../components/Reportes/ReportePedidosPorTipo";
+import ReporteVentasPorPeriodo from "../../components/Reportes/ReporteVentasPorPeriodo";
+import ReporteVentasDiarias from "../../components/Reportes/ReporteVentasDiarias";
 
 export default function Reportes() {
-  const [mostrarComponenteOculto, setMostrarComponenteOculto] = useState(false);
+  const [reporteActivo, setReporteActivo] = useState(null); // id del reporte abierto
 
-  const handleGenerarPedidosPorTipo = () => {
-    setMostrarComponenteOculto(true);
-    
-    setTimeout(() => {
-      const botones = document.querySelectorAll('button');
-      const botonPDF = Array.from(botones).find(btn => 
-        btn.textContent.includes('Descargar PDF')
-      );
-      
-      if (botonPDF) {
-        botonPDF.click();
-        setTimeout(() => setMostrarComponenteOculto(false), 2000);
-      } else {
-        alert("No se pudo encontrar el botón del PDF");
-        setMostrarComponenteOculto(false);
-      }
-    }, 1000);
-  };
+  const abrirReporte = (id) => setReporteActivo(id);
+  const cerrarReporte = () => setReporteActivo(null);
 
   const reportes = [
     {
@@ -31,7 +17,6 @@ export default function Reportes() {
       descripcion: "Visualiza la cantidad de pedidos por tipo (Mesa, Domicilio, Para llevar)",
       icono: <Package size={40} />,
       color: "#ff6384",
-      accion: handleGenerarPedidosPorTipo,
       habilitado: true
     },
     {
@@ -40,8 +25,7 @@ export default function Reportes() {
       descripcion: "Analiza las ventas en un rango de fechas específico",
       icono: <TrendingUp size={40} />,
       color: "#36a2eb",
-      accion: () => {},
-      habilitado: false
+      habilitado: true
     },
     {
       id: "productos-vendidos",
@@ -49,7 +33,6 @@ export default function Reportes() {
       descripcion: "Conoce cuáles son los productos con mayor demanda",
       icono: <FileText size={40} />,
       color: "#ffce56",
-      accion: () => {},
       habilitado: false
     },
     {
@@ -58,7 +41,6 @@ export default function Reportes() {
       descripcion: "Evalúa el rendimiento y productividad del personal",
       icono: <Users size={40} />,
       color: "#4bc0c0",
-      accion: () => {},
       habilitado: false
     },
     {
@@ -67,8 +49,7 @@ export default function Reportes() {
       descripcion: "Resumen de ventas día por día del mes actual",
       icono: <Calendar size={40} />,
       color: "#9966ff",
-      accion: () => {},
-      habilitado: false
+      habilitado: true
     },
     {
       id: "inventario",
@@ -76,32 +57,60 @@ export default function Reportes() {
       descripcion: "Revisa el stock actual y productos con bajo inventario",
       icono: <Package size={40} />,
       color: "#ff9f40",
-      accion: () => {},
       habilitado: false
     }
   ];
 
+  const renderComponente = () => {
+    switch (reporteActivo) {
+      case "pedidos-tipo":    return <ReportePedidosPorTipo />;
+      case "ventas-periodo":  return <ReporteVentasPorPeriodo />;
+      case "ventas-diarias":  return <ReporteVentasDiarias />;
+      default:                return null;
+    }
+  };
+
+  const tituloActivo = reportes.find(r => r.id === reporteActivo)?.titulo;
+  const colorActivo  = reportes.find(r => r.id === reporteActivo)?.color;
+
   return (
     <>
-      {/* Componente oculto para generar el PDF */}
-      {mostrarComponenteOculto && (
-        <div className="absolute -left-[9999px] top-0">
-          <ReportePedidosPorTipo />
+      {/* ── MODAL ── */}
+      {reporteActivo && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto py-10"
+          onClick={(e) => { if (e.target === e.currentTarget) cerrarReporte(); }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4">
+            {/* Header del modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colorActivo }} />
+                <h2 className="text-xl font-bold text-gray-800">{tituloActivo}</h2>
+              </div>
+              <button
+                onClick={cerrarReporte}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Contenido */}
+            <div className="p-6">
+              {renderComponente()}
+            </div>
+          </div>
         </div>
       )}
 
+      {/* ── PÁGINA ── */}
       <div className="p-8 max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-10">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Sistema de Reportes
-          </h1>
-          <p className="text-gray-600 text-base">
-            Selecciona el tipo de reporte que deseas generar
-          </p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Sistema de Reportes</h1>
+          <p className="text-gray-600 text-base">Selecciona el tipo de reporte que deseas generar</p>
         </div>
 
-        {/* Grid de Reportes */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
           {reportes.map((reporte) => (
             <div
@@ -109,16 +118,8 @@ export default function Reportes() {
               className={`
                 border-2 border-gray-200 rounded-xl p-6 bg-white
                 transition-all duration-300 shadow-md
-                ${reporte.habilitado 
-                  ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1' 
-                  : 'cursor-not-allowed'
-                }
+                ${reporte.habilitado ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1' : 'cursor-not-allowed'}
               `}
-              style={{
-                ...(reporte.habilitado && {
-                  '--hover-color': reporte.color
-                })
-              }}
               onMouseEnter={(e) => {
                 if (reporte.habilitado) {
                   e.currentTarget.style.borderColor = reporte.color;
@@ -128,29 +129,24 @@ export default function Reportes() {
               onMouseLeave={(e) => {
                 if (reporte.habilitado) {
                   e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
                 }
               }}
-              onClick={() => reporte.habilitado && reporte.accion && reporte.accion()}
+              onClick={() => reporte.habilitado && abrirReporte(reporte.id)}
             >
               <div style={{ color: reporte.color }} className="mb-4">
                 {reporte.icono}
               </div>
-              
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                {reporte.titulo}
-              </h3>
-              
-              <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                {reporte.descripcion}
-              </p>
-              
+
+              <h3 className="text-xl font-semibold mb-2 text-gray-800">{reporte.titulo}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed mb-4">{reporte.descripcion}</p>
+
               <button
                 disabled={!reporte.habilitado}
                 className={`
                   w-full py-2.5 px-5 rounded-lg font-semibold text-sm text-white
                   flex items-center justify-center gap-2 transition-all
-                  ${reporte.habilitado ? 'hover:opacity-90' : 'cursor-not-allowed'}
+                  ${reporte.habilitado ? 'hover:opacity-90' : 'cursor-not-allowed opacity-60'}
                 `}
                 style={{ backgroundColor: reporte.color }}
               >
