@@ -82,7 +82,9 @@ export default function PedidoImprimir() {
       {/* INFO DEL PEDIDO */}
       <div style={{ fontSize: "13px", marginBottom: "10px" }}>
         <strong>Pedido:</strong> #{id} <br />
-        <strong>Fecha:</strong> {new Date(pedido.fecha).toLocaleString("es-CO")} 
+        <strong>Fecha:</strong>{" "}
+        {new Date(new Date(pedido.fecha.replace(" ", "T"))).toLocaleDateString("es-CO")}
+
         <br />
         <strong>Tipo:</strong> {pedido.tipo}
       </div>
