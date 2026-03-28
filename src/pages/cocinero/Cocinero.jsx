@@ -1,319 +1,255 @@
+// Cocina.jsx — Vista de cocina
+// Enfocado en lo que se tiene que preparar: platos + cantidad
+
 import { useEffect, useState } from "react";
-import PedidoCard from "../../components/PedidoCard";
-import PedidoModal from "../../components/PedidoModal";
 import { pedidoService } from "../../services/pedidoService";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
+// ── Config de estados ──────────────────────────────────────────────────────
+const ESTADO_CFG = {
+  Pendiente:      { bar: "bg-yellow-400", badge: "bg-yellow-50 text-yellow-800 border-yellow-300", btnActive: "bg-yellow-500 text-white border-yellow-500", btnInactive: "bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100" },
+  En_preparacion: { bar: "bg-blue-500",   badge: "bg-blue-50   text-blue-800   border-blue-300",   btnActive: "bg-blue-600   text-white border-blue-600",   btnInactive: "bg-blue-50   text-blue-700   border-blue-300   hover:bg-blue-100"   },
+  Entregado:      { bar: "bg-green-500",  badge: "bg-green-50  text-green-800  border-green-300",  btnActive: "bg-green-600  text-white border-green-600",  btnInactive: "bg-green-50  text-green-700  border-green-300  hover:bg-green-100"  },
+  Anulado:        { bar: "bg-red-500",    badge: "bg-red-50    text-red-800    border-red-300",    btnActive: "bg-red-600    text-white border-red-600",    btnInactive: "bg-red-50    text-red-700    border-red-300    hover:bg-red-100"     },
+};
+
+const TIPO_CHIP = { Mesa: "bg-blue-500", Llevar: "bg-green-500", Domicilio: "bg-purple-500" };
+
+// ── Tarjeta ────────────────────────────────────────────────────────────────
+function CocinaCard({ pedido, onIniciar, onEntregar }) {
+  const estadoCfg = ESTADO_CFG[pedido.estado] || { bar: "bg-gray-400", badge: "bg-gray-50 text-gray-600 border-gray-300" };
+  const tipoChip  = TIPO_CHIP[pedido.tipo] || "bg-gray-400";
+  const platos    = pedido.detallePedidos ?? pedido.detalles ?? [];
+
+  return (
+    <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all duration-200">
+
+      {/* Barra de estado */}
+      <div className={`h-1.5 w-full ${estadoCfg.bar}`} />
+
+      {/* Header */}
+      <div className="px-4 pt-3 pb-3 flex items-center justify-between gap-2 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 font-medium">#</span>
+          <h3 className="text-xl font-bold text-gray-800">{pedido.idPedido}</h3>
+          {pedido.tipo === "Mesa" && pedido.mesa?.numero && (
+            <span className="text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-2 py-0.5">
+              Mesa {pedido.mesa.numero}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full text-white ${tipoChip}`}>
+            {pedido.tipo}
+          </span>
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${estadoCfg.badge}`}>
+            {pedido.estado.replace("_", " ")}
+          </span>
+        </div>
+      </div>
+
+      {/* Platos — protagonista */}
+      <div className="px-4 py-3 flex-1">
+        {platos.length === 0 ? (
+          <p className="text-sm text-gray-400 italic text-center py-4">Sin platos registrados</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {platos.map((d, i) => (
+              <li
+                key={d.idDetallePedido ?? i}
+                className="flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5"
+              >
+                <span className="text-sm font-semibold text-gray-800 leading-tight">
+                  {d.plato?.nombre ?? "Plato"}
+                </span>
+                <span className="shrink-0 inline-flex items-center justify-center min-w-[2rem] h-7 text-sm font-bold bg-white border-2 border-gray-200 text-gray-700 rounded-full px-2">
+                  x{d.cantidad}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Acción */}
+      {pedido.estado === "Pendiente" && (
+        <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+          <button
+            onClick={() => onIniciar(pedido)}
+            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-bold rounded-xl transition shadow-sm"
+          >
+            Iniciar preparacion
+          </button>
+        </div>
+      )}
+      {pedido.estado === "En_preparacion" && (
+        <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+          <button
+            onClick={() => onEntregar(pedido)}
+            className="w-full py-2.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-bold rounded-xl transition shadow-sm"
+          >
+            Listo — Marcar entregado
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Filtro pill ────────────────────────────────────────────────────────────
+function FilterBtn({ label, count, activo, cfgActive, cfgInactive, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full border transition ${activo ? cfgActive : cfgInactive}`}
+    >
+      {label}
+      <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activo ? "bg-white/25 text-white" : "bg-white/60 opacity-80"}`}>
+        {count}
+      </span>
+    </button>
+  );
+}
+
+// ── Página ─────────────────────────────────────────────────────────────────
 export default function Cocina() {
-  const [pedidos, setPedidos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
-  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [pedidos,      setPedidos]      = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [refreshing,   setRefreshing]   = useState(false);
+  const [filtroEstado, setFiltroEstado] = useState("");
   const SweetAlert = withReactContent(Swal);
 
-  // Cargar pedidos
-  const cargarPedidos = async () => {
+  const cargarPedidos = async (mostrarAlert = false) => {
+    setRefreshing(true);
     try {
       const data = await pedidoService.listar();
-
-      const estadosPermitidos = [
-        "Pendiente",
-        "En_preparacion",
-        "Entregado",
-        "Anulado",
-        "Pagado",
-      ];
-
-      const pedidosCocina = data.filter((p) =>
-        estadosPermitidos.includes(p.estado)
-      );
-      setPedidos(pedidosCocina);
-      SweetAlert.fire("Pedidos", "Se ha actualizado correctamente", "success");
-    } catch (error) {
-      console.error("Error al cargar pedidos:", error);
-      SweetAlert.fire("Pedidos", "Error al cargar pedidos", "error");
+      const permitidos = ["Pendiente", "En_preparacion", "Entregado", "Anulado"];
+      setPedidos(data.filter(p => permitidos.includes(p.estado)));
+      if (mostrarAlert)
+        SweetAlert.fire({ icon: "success", title: "Actualizado", timer: 1000, showConfirmButton: false });
+    } catch {
+      SweetAlert.fire({ icon: "error", title: "Error", text: "No se pudieron cargar los pedidos." });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
     cargarPedidos();
-    const interval = setInterval(cargarPedidos, 30000);
+    const interval = setInterval(() => cargarPedidos(), 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Lista filtrada según estado
-  const pedidosFiltrados =
-    filtroEstado === "todos"
-      ? pedidos
-      : pedidos.filter((p) => p.estado === filtroEstado);
+  const filtrados = filtroEstado ? pedidos.filter(p => p.estado === filtroEstado) : pedidos;
+  const cnt = (key) => pedidos.filter(p => p.estado === key).length;
 
-  // Calcular contadores
-  const contadores = {
-    total: pedidos.length,
-    pendientes: pedidos.filter((p) => p.estado === "Pendiente").length,
-    en_preparacion: pedidos.filter((p) => p.estado === "En_preparacion")
-      .length,
-    entregados: pedidos.filter((p) => p.estado === "Entregado").length,
-    cancelados: pedidos.filter((p) => p.estado === "Anulado").length,
-  };
-
-  const abrirModal = (pedido) => {
-    setPedidoSeleccionado(pedido);
-    setModalOpen(true);
-  };
-
-  const cerrarModal = () => {
-    setPedidoSeleccionado(null);
-    setModalOpen(false);
-  };
-
-  const actualizarEstadoPedido = async (pedidoActualizado) => {
+  const cambiarEstado = async (pedido, nuevoEstado) => {
     try {
-      await pedidoService.actualizar(
-        pedidoActualizado.idPedido,
-        pedidoActualizado
-      );
-      cerrarModal();
+      await pedidoService.actualizar(pedido.idPedido, { ...pedido, estado: nuevoEstado });
       cargarPedidos();
-    } catch (error) {
-      console.error("Error al actualizar pedido:", error);
-    }
-  };
-
-  const cambiarEstadoRapido = async (pedido, nuevoEstado) => {
-    try {
-      await pedidoService.actualizar(pedido.idPedido, {
-        ...pedido,
-        estado: nuevoEstado,
-      });
-      cargarPedidos();
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
-      SweetAlert.fire("Error", "Error al actualizar el pedido", "error");
+    } catch {
+      SweetAlert.fire({ icon: "error", title: "Error", text: "No se pudo actualizar el pedido." });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl text-gray-600">Cargando pedidos...</div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="flex items-center gap-3 text-gray-400 text-sm">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin" />
+          Cargando pedidos…
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-6">
+
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          🍳 Pedidos en Cocina
-        </h1>
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-0.5">Vista</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Cocina</h1>
+        </div>
         <button
-          onClick={cargarPedidos}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition flex items-center gap-2"
+          onClick={() => cargarPedidos(true)}
+          disabled={refreshing}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition shadow-sm disabled:opacity-60"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
+          <svg className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          Actualizar
+          {refreshing ? "Actualizando…" : "Actualizar"}
         </button>
       </div>
 
-      {/* Filtros por estado */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <button
-          onClick={() => setFiltroEstado("todos")}
-          className={`px-4 py-2 rounded-full font-semibold border transition ${
-            filtroEstado === "todos"
-              ? "bg-gray-700 text-white border-gray-700"
-              : "bg-gray-200 text-gray-700 border-gray-300 hover:bg-gray-300"
-          }`}
-        >
-          Todos ({contadores.total})
-        </button>
-
-        <button
-          onClick={() => setFiltroEstado("Pendiente")}
-          className={`px-4 py-2 rounded-full font-semibold border flex items-center gap-2 transition ${
-            filtroEstado === "Pendiente"
-              ? "bg-yellow-500 text-white border-yellow-500"
-              : "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
-          }`}
-        >
-          <span>⏳ Pendientes</span>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              filtroEstado === "Pendiente"
-                ? "bg-white text-yellow-700"
-                : "bg-yellow-300 text-yellow-900"
-            }`}
-          >
-            {contadores.pendientes}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setFiltroEstado("En_preparacion")}
-          className={`px-4 py-2 rounded-full font-semibold border flex items-center gap-2 transition ${
-            filtroEstado === "En_preparacion"
-              ? "bg-blue-500 text-white border-blue-500"
-              : "bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200"
-          }`}
-        >
-          <span>👨‍🍳 En Preparación</span>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              filtroEstado === "En_preparacion"
-                ? "bg-white text-blue-700"
-                : "bg-blue-300 text-blue-900"
-            }`}
-          >
-            {contadores.en_preparacion}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setFiltroEstado("Entregado")}
-          className={`px-4 py-2 rounded-full font-semibold border flex items-center gap-2 transition ${
-            filtroEstado === "Entregado"
-              ? "bg-green-500 text-white border-green-500"
-              : "bg-green-100 text-green-700 border-green-300 hover:bg-green-200"
-          }`}
-        >
-          <span>✅ Entregados</span>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              filtroEstado === "Entregado"
-                ? "bg-white text-green-700"
-                : "bg-green-300 text-green-900"
-            }`}
-          >
-            {contadores.entregados}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setFiltroEstado("Anulado")}
-          className={`px-4 py-2 rounded-full font-semibold border flex items-center gap-2 transition ${
-            filtroEstado === "Anulado"
-              ? "bg-red-500 text-white border-red-500"
-              : "bg-red-100 text-red-700 border-red-300 hover:bg-red-200"
-          }`}
-        >
-          <span>❌ Cancelados</span>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              filtroEstado === "Anulado"
-                ? "bg-white text-red-700"
-                : "bg-red-300 text-red-900"
-            }`}
-          >
-            {contadores.cancelados}
-          </span>
-        </button>
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {[
+          { label: "Pendientes",     key: "Pendiente",      color: "border-l-yellow-400", text: "text-yellow-700", bg: "bg-yellow-50" },
+          { label: "En preparación", key: "En_preparacion", color: "border-l-blue-400",   text: "text-blue-700",   bg: "bg-blue-50"   },
+          { label: "Entregados",     key: "Entregado",      color: "border-l-green-400",  text: "text-green-700",  bg: "bg-green-50"  },
+          { label: "Cancelados",     key: "Anulado",        color: "border-l-red-400",    text: "text-red-700",    bg: "bg-red-50"    },
+        ].map(({ label, key, color, text, bg }) => (
+          <div key={key} className={`${bg} border-l-4 ${color} rounded-xl px-4 py-3 cursor-pointer`} onClick={() => setFiltroEstado(filtroEstado === key ? "" : key)}>
+            <p className="text-xs font-semibold text-gray-500 mb-0.5">{label}</p>
+            <p className={`text-2xl font-bold ${text}`}>{cnt(key)}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Contador de pedidos */}
-      <div className="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded">
-        <p className="font-semibold text-orange-800">
-          📋 {pedidosFiltrados.length} pedido(s){" "}
-          {filtroEstado !== "todos" && (
-            <span>
-              -{" "}
-              {filtroEstado === "En_preparacion"
-                ? "En Preparación"
-                : filtroEstado}
-            </span>
-          )}
-        </p>
+      {/* Filtros */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 mb-2">
+        <FilterBtn
+          label="Todos" count={pedidos.length}
+          activo={filtroEstado === ""}
+          cfgActive="bg-gray-700 text-white border-gray-700"
+          cfgInactive="bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+          onClick={() => setFiltroEstado("")}
+        />
+        {Object.entries(ESTADO_CFG).map(([key, cfg]) => (
+          <FilterBtn
+            key={key}
+            label={key.replace("_", " ")}
+            count={cnt(key)}
+            activo={filtroEstado === key}
+            cfgActive={cfg.btnActive}
+            cfgInactive={cfg.btnInactive}
+            onClick={() => setFiltroEstado(filtroEstado === key ? "" : key)}
+          />
+        ))}
       </div>
 
-      {/* Lista de pedidos */}
-      {pedidosFiltrados.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {pedidosFiltrados.map((pedido) => (
-            <div key={pedido.idPedido} className="flex flex-col gap-2">
-              {/* Card del pedido */}
-              <PedidoCard pedido={pedido} onClick={() => abrirModal(pedido)} />
+      {/* Contador */}
+      <div className="flex items-center justify-between mt-3 mb-4">
+        <span className="text-sm font-semibold text-gray-600">
+          {filtrados.length} de {pedidos.length} pedidos
+          {filtroEstado && <span className="text-gray-400 font-normal"> — {filtroEstado.replace("_", " ")}</span>}
+        </span>
+        <span className="text-xs text-gray-400">Actualiza cada 30s</span>
+      </div>
 
-              {/* Botones de acción según el estado */}
-              <div className="flex gap-2">
-                {/* PENDIENTE: Iniciar o Cancelar */}
-                {pedido.estado === "Pendiente" && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        cambiarEstadoRapido(pedido, "En_preparacion");
-                      }}
-                      className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-md hover:shadow-lg"
-                    >
-                      Iniciar Preparación
-                    </button>
-
-                    {/* CANCELAR CON SWEETALERT */}
-                    
-                  </>
-                )}
-
-                {/* EN PREPARACIÓN: Marcar como Entregado o Cancelar */}
-                {pedido.estado === "En_preparacion" && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        cambiarEstadoRapido(pedido, "Entregado");
-                      }}
-                      className="flex-1 px-4 py-2.5 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition shadow-md hover:shadow-lg"
-                    >
-                      Marcar Entregado
-                    </button>
-
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+      {/* Grid */}
+      {filtrados.length === 0 ? (
+        <div className="text-center py-20 bg-white border-2 border-dashed border-gray-200 rounded-2xl">
+          <div className="text-5xl mb-3">🍽️</div>
+          <p className="text-lg font-semibold text-gray-600 mb-1">Sin pedidos</p>
+          <p className="text-sm text-gray-400">Los nuevos pedidos aparecerán aquí automáticamente</p>
         </div>
       ) : (
-        /* Mensaje cuando no hay pedidos */
-        <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300">
-          <div className="text-6xl mb-4">🍽️</div>
-          <p className="text-xl font-semibold text-gray-700 mb-2">
-            No hay pedidos{" "}
-            {filtroEstado === "todos"
-              ? "en cocina"
-              : filtroEstado === "En_preparacion"
-              ? "en preparación"
-              : filtroEstado.toLowerCase()}
-          </p>
-          <p className="text-sm text-gray-500">
-            Los nuevos pedidos aparecerán aquí automáticamente
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filtrados.map(pedido => (
+            <CocinaCard
+              key={pedido.idPedido}
+              pedido={pedido}
+              onIniciar={p => cambiarEstado(p, "En_preparacion")}
+              onEntregar={p => cambiarEstado(p, "Entregado")}
+            />
+          ))}
         </div>
-      )}
-
-      {/* Modal para ver detalles */}
-      {modalOpen && (
-        <PedidoModal
-          pedido={pedidoSeleccionado}
-          onClose={cerrarModal}
-          onSave={actualizarEstadoPedido}
-        />
       )}
     </div>
   );
