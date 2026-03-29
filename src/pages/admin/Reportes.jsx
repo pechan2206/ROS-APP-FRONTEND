@@ -3,9 +3,10 @@ import { FileText, TrendingUp, Users, Package, Calendar, Download, X } from "luc
 import ReportePedidosPorTipo from "../../components/Reportes/ReportePedidosPorTipo";
 import ReporteVentasPorPeriodo from "../../components/Reportes/ReporteVentasPorPeriodo";
 import ReporteVentasDiarias from "../../components/Reportes/ReporteVentasDiarias";
+import ReporteProductosMasVendidos from "../../components/Reportes/ReporteProductosMasVendidos";
 
 export default function Reportes() {
-  const [reporteActivo, setReporteActivo] = useState(null); // id del reporte abierto
+  const [reporteActivo, setReporteActivo] = useState(null);
 
   const abrirReporte = (id) => setReporteActivo(id);
   const cerrarReporte = () => setReporteActivo(null);
@@ -33,7 +34,7 @@ export default function Reportes() {
       descripcion: "Conoce cuáles son los productos con mayor demanda",
       icono: <FileText size={40} />,
       color: "#ffce56",
-      habilitado: false
+      habilitado: true  // ← activado
     },
     {
       id: "empleados-desempeño",
@@ -63,10 +64,11 @@ export default function Reportes() {
 
   const renderComponente = () => {
     switch (reporteActivo) {
-      case "pedidos-tipo":    return <ReportePedidosPorTipo />;
-      case "ventas-periodo":  return <ReporteVentasPorPeriodo />;
-      case "ventas-diarias":  return <ReporteVentasDiarias />;
-      default:                return null;
+      case "pedidos-tipo":       return <ReportePedidosPorTipo />;
+      case "ventas-periodo":     return <ReporteVentasPorPeriodo />;
+      case "productos-vendidos": return <ReporteProductosMasVendidos />;
+      case "ventas-diarias":     return <ReporteVentasDiarias />;
+      default:                   return null;
     }
   };
 
