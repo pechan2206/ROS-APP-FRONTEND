@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import { Plus, LayoutGrid, Search } from "lucide-react";
 import TableCard from "../../components/TableCard";
 import MesaModal from "../../components/MesaModal";
+import DetallePedidoModal from "../../components/DetallePedidoModal";
 import { mesaService } from "../../services/mesaService";
 import { pedidoService } from "../../services/pedidoService";
 
 export default function Mesas() {
   const [mesas, setMesas]                       = useState([]);
-  const [pedidosActivos, setPedidosActivos]      = useState({});  // { idMesa: idPedido }
+  const [pedidosActivos, setPedidosActivos]      = useState({});  // { idMesa: pedidoCompleto }
   const [loading, setLoading]                   = useState(true);
-  const [modalOpen, setModalOpen]               = useState(false);
+  const [modalMesaOpen, setModalMesaOpen]       = useState(false);
   const [mesaSeleccionada, setMesaSeleccionada] = useState(null);
+  const [pedidoModal, setPedidoModal]           = useState(null); // pedido completo
   const [filtroEstado, setFiltroEstado]         = useState("TODOS");
   const [busqueda, setBusqueda]                 = useState("");
 
@@ -23,16 +25,11 @@ export default function Mesas() {
 
       setMesas(dataMesas);
 
-      // Construir mapa idMesa → idPedido para pedidos activos
+      // Mapa idMesa → pedido completo (solo activos)
       const mapa = {};
       dataPedidos
-        .filter(p =>
-          p.mesa &&
-          (p.estado === "Pendiente" || p.estado === "En_preparacion")
-        )
-        .forEach(p => {
-          mapa[p.mesa.idMesa] = p.idPedido;
-        });
+        .filter(p => p.mesa && (p.estado === "Pendiente" || p.estado === "En_preparacion"))
+        .forEach(p => { mapa[p.mesa.idMesa] = p; });
 
       setPedidosActivos(mapa);
     } catch (error) {
@@ -44,8 +41,21 @@ export default function Mesas() {
 
   useEffect(() => { cargarMesas(); }, []);
 
-  const abrirModal  = (mesa = null) => { setMesaSeleccionada(mesa); setModalOpen(true); };
-  const cerrarModal = () => { setMesaSeleccionada(null); setModalOpen(false); };
+  // Click en tarjeta:
+  // - con pedido activo → abre DetallePedidoModal
+  // - sin pedido        → abre MesaModal para editar
+  const handleClickMesa = (mesa) => {
+    const pedido = pedidosActivos[mesa.idMesa];
+    if (pedido) {
+      setPedidoModal(pedido);
+    } else {
+      setMesaSeleccionada(mesa);
+      setModalMesaOpen(true);
+    }
+  };
+
+  const cerrarModalMesa   = () => { setMesaSeleccionada(null); setModalMesaOpen(false); };
+  const cerrarModalPedido = () => setPedidoModal(null);
 
   const guardarMesa = async (mesa) => {
     try {
@@ -55,7 +65,7 @@ export default function Mesas() {
       } else {
         await mesaService.crear(mesa);
       }
-      cerrarModal();
+      cerrarModalMesa();
       cargarMesas();
     } catch (error) {
       throw error;
@@ -98,7 +108,7 @@ export default function Mesas() {
           <p className="text-gray-500 text-sm mt-1">{mesas.length} mesas registradas</p>
         </div>
         <button
-          onClick={() => abrirModal(null)}
+          onClick={() => { setMesaSeleccionada(null); setModalMesaOpen(true); }}
           className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:-translate-y-0.5"
         >
           <Plus size={18} />
@@ -151,18 +161,28 @@ export default function Mesas() {
             <TableCard
               key={mesa.idMesa}
               mesa={mesa}
-              pedidoActivo={pedidosActivos[mesa.idMesa] ?? null}  // ← nuevo
-              onClick={() => abrirModal(mesa)}
+              pedidoActivo={pedidosActivos[mesa.idMesa]?.idPedido ?? null}
+              onClick={handleClickMesa}
             />
           ))}
         </div>
       )}
 
-      {modalOpen && (
+      {/* Modal editar/crear mesa */}
+      {modalMesaOpen && (
         <MesaModal
           mesa={mesaSeleccionada}
-          onClose={cerrarModal}
+          onClose={cerrarModalMesa}
           onSave={guardarMesa}
+        />
+      )}
+
+      {/* Modal detalle pedido */}
+      {pedidoModal && (
+        <DetallePedidoModal
+          pedido={pedidoModal}
+          onClose={cerrarModalPedido}
+          onActualizado={cargarMesas}
         />
       )}
     </div>
