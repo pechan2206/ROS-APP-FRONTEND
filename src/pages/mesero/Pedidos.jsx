@@ -6,6 +6,7 @@ import { clienteService } from "../../services/clienteService";
 import { enumService } from "../../services/enumService";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { mesaService } from "../../services/mesaService";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const formatCOP = (n) =>
@@ -191,27 +192,33 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
   };
 
   const handleGuardar = async () => {
-    const e = validar();
-    if (Object.keys(e).length > 0) { setErrores(e); return; }
-    setErrores({});
-    setErrorApi(null);
-    setSaving(true);
-    try {
-      await onGuardar({
-        ...pedidoEdit,
-        mesa:    form.tipo === "Mesa" ? { idMesa: Number(form.mesaId) } : null,
-        cliente: { telefono: form.clienteTelefono },
-        tipo:    form.tipo,
-        estado:  form.estado,
-        total:   parseFloat(form.total) || 0,
-      });
-    } catch (err) {
-      const mensaje = err?.response?.data?.mensaje || "Error al guardar el pedido";
-      setErrorApi(mensaje);
-    } finally {
-      setSaving(false);
+  const e = validar();
+  if (Object.keys(e).length > 0) { setErrores(e); return; }
+  setErrores({});
+  setErrorApi(null);
+  setSaving(true);
+  try {
+    let idMesaReal = null;
+    if (form.tipo === "Mesa") {
+      const mesa = await mesaService.buscarPorNumero(Number(form.mesaId));
+      idMesaReal = mesa.idMesa;
     }
-  };
+
+    await onGuardar({
+      ...pedidoEdit,
+      mesa:    form.tipo === "Mesa" ? { idMesa: idMesaReal } : null,
+      cliente: { telefono: form.clienteTelefono },
+      tipo:    form.tipo,
+      estado:  form.estado,
+      total:   parseFloat(form.total) || 0,
+    });
+  } catch (err) {
+    const mensaje = err?.response?.data?.mensaje || "Error al guardar el pedido";
+    setErrorApi(mensaje);
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <div className="bg-white border-2 border-gray-200 rounded-2xl shadow-xl ring-1 ring-gray-300/60 h-fit md:sticky md:top-6">

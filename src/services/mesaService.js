@@ -6,6 +6,11 @@ export const mesaService = {
         return res.data;
     },
 
+    buscarPorNumero: async (numero) => {
+        const res = await api.get(`/mesas/numero/${numero}`);
+        return res.data;
+    },
+
     obtenerPorId: async (id) => {
         const res = await api.get(`/mesas/${id}`);
         return res.data;
