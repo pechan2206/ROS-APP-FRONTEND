@@ -245,13 +245,13 @@ export default function Usuarios() {
                           <Edit size={18} />
                         </button>
 
-                        <button
+{/*                         <button
                           onClick={() => handleEliminar(usuario.idUsuario, usuario.nombre)}
                           className="text-red-600 hover:text-red-800 transition p-1"
                           title="Eliminar"
                         >
                           <Trash2 size={18} />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>
