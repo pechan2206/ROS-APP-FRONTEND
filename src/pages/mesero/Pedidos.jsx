@@ -1,8 +1,6 @@
-// Pedidos.jsx — Página unificada con Tailwind CSS — Responsive
-// Filtros combinados: tipo de pedido + estado del pedido
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
 import { pedidoService } from "../../services/pedidoService";
 import { clienteService } from "../../services/clienteService";
 import { enumService } from "../../services/enumService";
@@ -32,7 +30,6 @@ const getEstadoCfg = (estado) => {
   return map[estado] || "bg-gray-50 text-gray-600 border-gray-300";
 };
 
-// Colores de los botones de filtro de estado
 const estadoBtnCfg = {
   Pendiente:      { active: "bg-yellow-500 text-white border-yellow-500", inactive: "bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100" },
   En_preparacion: { active: "bg-orange-500 text-white border-orange-500", inactive: "bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100" },
@@ -99,7 +96,6 @@ function Btn({ children, onClick, variant = "gray", title, small, fullWidth }) {
   );
 }
 
-// ── Botón de filtro reutilizable ───────────────────────────────────────────
 function FilterBtn({ label, count, activo, cfgActive, cfgInactive, onClick }) {
   return (
     <button
@@ -120,8 +116,9 @@ function FilterBtn({ label, count, activo, cfgActive, cfgInactive, onClick }) {
 // PANEL FORMULARIO
 // ══════════════════════════════════════════════════════════════════════════════
 function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
-  const navigate = useNavigate();
+  const navigate   = useNavigate();
   const SweetAlert = withReactContent(Swal);
+
   const esCancelado = pedidoEdit?.estado === "Anulado";
   const esEdicion   = !!pedidoEdit?.idPedido;
 
@@ -129,19 +126,25 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
   const [sugerencias, setSugerencias] = useState([]);
   const [showSug,     setShowSug]     = useState(false);
   const [errores,     setErrores]     = useState({});
+  const [errorApi,    setErrorApi]    = useState(null);
+  const [saving,      setSaving]      = useState(false);
+
   const [form, setForm] = useState({
     tipo: "Mesa", mesaId: "", clienteTelefono: "", estado: "Pendiente", total: 0,
   });
 
   useEffect(() => {
     setForm(pedidoEdit ? {
-      tipo:            pedidoEdit.tipo             || "Mesa",
-      mesaId:          pedidoEdit.mesa?.idMesa     || "",
+      tipo:            pedidoEdit.tipo              || "Mesa",
+      mesaId:          pedidoEdit.mesa?.idMesa      || "",
       clienteTelefono: pedidoEdit.cliente?.telefono || "",
-      estado:          pedidoEdit.estado           || "Pendiente",
-      total:           pedidoEdit.total            || 0,
+      estado:          pedidoEdit.estado            || "Pendiente",
+      total:           pedidoEdit.total             || 0,
     } : { tipo: "Mesa", mesaId: "", clienteTelefono: "", estado: "Pendiente", total: 0 });
-    setSugerencias([]); setShowSug(false); setErrores({});
+    setSugerencias([]);
+    setShowSug(false);
+    setErrores({});
+    setErrorApi(null);
   }, [pedidoEdit]);
 
   useEffect(() => {
@@ -152,12 +155,12 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
     if (esCancelado) return;
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-    // Limpiar el error del campo en cuanto el usuario escribe
+    setErrorApi(null);
     if (errores[name]) setErrores(prev => ({ ...prev, [name]: "" }));
     if (name === "clienteTelefono" && value.length > 0) {
       try   { const r = await clienteService.buscarPorTelefono(value); setSugerencias(r); setShowSug(true); }
       catch { setSugerencias([]); setShowSug(false); }
-    } else  { setShowSug(false); }
+    } else { setShowSug(false); }
   };
 
   const validar = () => {
@@ -187,17 +190,27 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
     });
   };
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
     setErrores({});
-    onGuardar({
-      ...pedidoEdit,
-      mesa:    form.tipo === "Mesa" ? { idMesa: form.mesaId } : null,
-      cliente: { telefono: form.clienteTelefono },
-      tipo: form.tipo, estado: form.estado,
-      total: parseFloat(form.total) || 0,
-    });
+    setErrorApi(null);
+    setSaving(true);
+    try {
+      await onGuardar({
+        ...pedidoEdit,
+        mesa:    form.tipo === "Mesa" ? { idMesa: Number(form.mesaId) } : null,
+        cliente: { telefono: form.clienteTelefono },
+        tipo:    form.tipo,
+        estado:  form.estado,
+        total:   parseFloat(form.total) || 0,
+      });
+    } catch (err) {
+      const mensaje = err?.response?.data?.mensaje || "Error al guardar el pedido";
+      setErrorApi(mensaje);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -226,12 +239,22 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
       {/* Cuerpo */}
       <div className="p-5 flex flex-col gap-4">
 
+        {/* Aviso pedido anulado */}
         {esCancelado && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-800 text-center">
             ⚠️ Este pedido está anulado
           </div>
         )}
 
+        {/* Banner error API */}
+        {errorApi && (
+          <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 text-red-700 text-sm font-medium px-4 py-3 rounded-xl">
+            <AlertCircle size={16} className="shrink-0" />
+            {errorApi}
+          </div>
+        )}
+
+        {/* Tipo */}
         <div>
           <Label>Tipo de pedido</Label>
           <FieldSelect name="tipo" value={form.tipo} onChange={handleChange} disabled={esCancelado}>
@@ -241,6 +264,7 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
           {errores.tipo && <p className="text-xs text-red-500 mt-1 font-medium">{errores.tipo}</p>}
         </div>
 
+        {/* Mesa */}
         {form.tipo === "Mesa" && (
           <div>
             <Label>Número de mesa</Label>
@@ -253,6 +277,7 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
           </div>
         )}
 
+        {/* Teléfono cliente */}
         <div className="relative">
           <Label>Teléfono del cliente</Label>
           <FieldInput
@@ -287,6 +312,7 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
           )}
         </div>
 
+        {/* Total (solo edición) */}
         {esEdicion && (
           <div>
             <Label>Total</Label>
@@ -294,6 +320,7 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
           </div>
         )}
 
+        {/* Acciones edición */}
         {esEdicion && !esCancelado && (
           <div className="flex gap-2 flex-wrap pt-3 border-t border-gray-200">
             <Btn small variant="success" onClick={() => navigate(`detalles/${pedidoEdit.idPedido}`)}>
@@ -313,10 +340,13 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
         )}
       </div>
 
+      {/* Footer botón guardar */}
       {!esCancelado && (
         <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
           <Btn variant="primary" fullWidth onClick={handleGuardar}>
-            {esEdicion ? "Guardar cambios" : "Crear pedido"}
+            {saving
+              ? "Guardando..."
+              : esEdicion ? "Guardar cambios" : "Crear pedido"}
           </Btn>
         </div>
       )}
@@ -397,7 +427,6 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
     enumService.estados().then(d => setEstados(d || [])).catch(() => setEstados([]));
   }, []);
 
-  // Filtros combinados
   const filtrados = pedidos
     .filter(p => filtroTipo   ? p.tipo   === filtroTipo   : true)
     .filter(p => filtroEstado ? p.estado === filtroEstado : true);
@@ -408,14 +437,12 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
     Domicilio: { active: "bg-purple-600 text-white border-purple-600", inactive: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100" },
   };
 
-  // Contadores que respetan el otro filtro activo
   const cntTipo   = (tipo)   => pedidos.filter(p => p.tipo   === tipo   && (filtroEstado ? p.estado === filtroEstado : true)).length;
   const cntEstado = (estado) => pedidos.filter(p => p.estado === estado && (filtroTipo   ? p.tipo   === filtroTipo   : true)).length;
 
   return (
     <div className="flex flex-col gap-4">
 
-      {/* Cabecera */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Pedidos</h1>
         <span className="text-sm text-gray-500 bg-white border border-gray-200 rounded-full px-3 py-1 shrink-0">
@@ -423,12 +450,10 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
         </span>
       </div>
 
-      {/* ── Filtro por TIPO ── */}
+      {/* Filtro tipo */}
       <div>
         <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Tipo</p>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-
-          {/* Todos los tipos */}
           <FilterBtn
             label="Todos" count={pedidos.filter(p => filtroEstado ? p.estado === filtroEstado : true).length}
             activo={filtroTipo === ""}
@@ -436,17 +461,13 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
             cfgInactive="bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             onClick={() => onFiltrarTipo("")}
           />
-
           {tipos.map(tipo => {
             const cfg = tipoBtnCfg[tipo] || { active: "bg-gray-600 text-white border-gray-600", inactive: "bg-gray-50 text-gray-600 border-gray-200" };
             return (
               <FilterBtn
-                key={tipo}
-                label={tipo}
-                count={cntTipo(tipo)}
+                key={tipo} label={tipo} count={cntTipo(tipo)}
                 activo={filtroTipo === tipo}
-                cfgActive={cfg.active}
-                cfgInactive={cfg.inactive}
+                cfgActive={cfg.active} cfgInactive={cfg.inactive}
                 onClick={() => onFiltrarTipo(filtroTipo === tipo ? "" : tipo)}
               />
             );
@@ -454,12 +475,10 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
         </div>
       </div>
 
-      {/* ── Filtro por ESTADO ── */}
+      {/* Filtro estado */}
       <div>
         <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Estado</p>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-
-          {/* Todos los estados */}
           <FilterBtn
             label="Todos" count={pedidos.filter(p => filtroTipo ? p.tipo === filtroTipo : true).length}
             activo={filtroEstado === ""}
@@ -467,17 +486,13 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
             cfgInactive="bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             onClick={() => onFiltrarEstado("")}
           />
-
           {estados.map(estado => {
             const cfg = estadoBtnCfg[estado] || { active: "bg-gray-600 text-white border-gray-600", inactive: "bg-gray-50 text-gray-600 border-gray-200" };
             return (
               <FilterBtn
-                key={estado}
-                label={estado.replace("_", " ")}
-                count={cntEstado(estado)}
+                key={estado} label={estado.replace("_", " ")} count={cntEstado(estado)}
                 activo={filtroEstado === estado}
-                cfgActive={cfg.active}
-                cfgInactive={cfg.inactive}
+                cfgActive={cfg.active} cfgInactive={cfg.inactive}
                 onClick={() => onFiltrarEstado(filtroEstado === estado ? "" : estado)}
               />
             );
@@ -485,7 +500,7 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
         </div>
       </div>
 
-      {/* ── Indicador de filtros activos ── */}
+      {/* Indicador filtros activos */}
       {(filtroTipo || filtroEstado) && (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-gray-500">Filtrando por:</span>
@@ -510,7 +525,7 @@ function PanelLista({ pedidos, filtroTipo, filtroEstado, onFiltrarTipo, onFiltra
         </div>
       )}
 
-      {/* ── Tarjetas ── */}
+      {/* Tarjetas */}
       {loading ? (
         <div className="flex items-center gap-3 py-10 text-gray-400 text-sm">
           <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -567,7 +582,9 @@ export default function Pedidos() {
         navigate(`${nuevo.idPedido}/platos`);
       }
       cargar();
-    } catch (e) { console.error("Error al guardar:", e); }
+    } catch (e) {
+      throw e;  // ← relanzar para que PanelFormulario lo capture
+    }
   };
 
   return (
