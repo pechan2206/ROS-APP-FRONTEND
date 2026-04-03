@@ -27,25 +27,18 @@ export default function Login({ setRol }) {
             const data = await response.json();
 
             if (response.ok) {
-                // Guarda el token y rol en el localStorage y actualiza el estado de la App
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("rol", data.rol);
                 setRol(data.rol);
 
-                // Redirige según el rol
-                if (data.rol === "Administrador") {
-                    navigate("/admin/dashboard");
-                } else if (data.rol === "Mesero") {
-                    navigate("/mesero/home");
-                } else if (data.rol === "Cocinero") {
-                    navigate("/cocinero/cocina");
-                } else if (data.rol === "Cajero") {  // ← AGREGAR ESTA LÍNEA
-                    navigate("/cajero/caja");
-                } else {
-                    navigate("/");
-                }
+                if (data.rol === "Administrador")  navigate("/admin/dashboard");
+                else if (data.rol === "Mesero")    navigate("/mesero/home");
+                else if (data.rol === "Cocinero")  navigate("/cocinero/cocina");
+                else if (data.rol === "Cajero")    navigate("/cajero/caja");
+                else navigate("/");
             } else {
-                setError(data.message || "Usuario o contraseña incorrectos");
+                // ← antes usaba data.message, ahora también cubre data.mensaje
+                setError(data.message || data.mensaje || "Usuario o contraseña incorrectos");
             }
         } catch (err) {
             console.error(err);

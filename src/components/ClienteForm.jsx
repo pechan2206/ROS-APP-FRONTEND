@@ -1,27 +1,31 @@
-// ClienteForm.jsx — Modal para crear / editar un cliente
-// Mismo estilo del proyecto (Tailwind) — coherente con UsuarioForm
-
 import { useState, useEffect } from "react";
 import { clienteService } from "../services/clienteService";
 
-// ── Campos del formulario ──────────────────────────────────────────────────
 const FIELDS = [
-  { name: "nombre",      label: "Nombre completo", type: "text",  placeholder: "Ej: María García",      required: true,  icon: "👤" },
-  { name: "telefono",    label: "Teléfono",         type: "tel",   placeholder: "Ej: 3001234567",        required: true,  icon: "📱", pattern: "3\\d{9}", title: "Debe iniciar con 3 y tener 10 dígitos" },
-  { name: "correo",      label: "Correo electrónico",type: "email", placeholder: "Ej: maria@email.com",   required: false, icon: "✉️" },
-  { name: "direccion",   label: "Dirección",         type: "text",  placeholder: "Ej: Cra 10 #45-20",    required: false, icon: "📍" },
-  { name: "descripcion", label: "Notas adicionales", type: "text",  placeholder: "Alergias, preferencias…",required: false, icon: "📝" },
+  { name: "nombre",      label: "Nombre completo",   type: "text",  placeholder: "Ej: María García",         required: true,  icon: "👤" },
+  { name: "telefono",    label: "Teléfono",           type: "tel",   placeholder: "Ej: 3001234567",           required: true,  icon: "📱", pattern: "3\\d{9}", title: "Debe iniciar con 3 y tener 10 dígitos" },
+  { name: "correo",      label: "Correo electrónico", type: "email", placeholder: "Ej: maria@email.com",     required: false, icon: "✉️" },
+  { name: "direccion",   label: "Dirección",          type: "text",  placeholder: "Ej: Cra 10 #45-20",       required: false, icon: "📍" },
+  { name: "descripcion", label: "Notas adicionales",  type: "text",  placeholder: "Alergias, preferencias…", required: false, icon: "📝" },
 ];
+
+const LABELS = {
+  nombre:      "Nombre",
+  telefono:    "Teléfono",
+  correo:      "Correo",
+  direccion:   "Dirección",
+  descripcion: "Notas",
+};
 
 export default function ClienteForm({ cliente, onClose, onSave }) {
   const esEdicion = !!cliente?.idCliente;
 
-  const [form, setForm]       = useState({ nombre: "", telefono: "", correo: "", direccion: "", descripcion: "" });
+  const [form,    setForm]    = useState({ nombre: "", telefono: "", correo: "", direccion: "", descripcion: "" });
+  const [estado,  setEstado]  = useState(true);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
   const [errores, setErrores] = useState({});
 
-  // Precargar datos si es edición
   useEffect(() => {
     if (cliente) {
       setForm({
@@ -31,6 +35,7 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
         direccion:   cliente.direccion   || "",
         descripcion: cliente.descripcion || "",
       });
+      setEstado(cliente.estado ?? true);
     }
   }, [cliente]);
 
@@ -43,8 +48,8 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
 
   const validar = () => {
     const e = {};
-    if (!form.nombre.trim())    e.nombre   = "El nombre es obligatorio.";
-    if (!form.telefono.trim())  e.telefono = "El teléfono es obligatorio.";
+    if (!form.nombre.trim())   e.nombre   = "El nombre es obligatorio.";
+    if (!form.telefono.trim()) e.telefono = "El teléfono es obligatorio.";
     else if (!/^3\d{9}$/.test(form.telefono)) e.telefono = "Debe iniciar con 3 y tener 10 dígitos.";
     if (form.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo)) e.correo = "Correo inválido.";
     return e;
@@ -58,12 +63,15 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
     setLoading(true);
     setError(null);
     try {
+      const payload = { ...form, estado };
+
       if (esEdicion) {
-        await clienteService.actualizar(cliente.idCliente, form);
+        await clienteService.actualizar(cliente.idCliente, payload);
       } else {
-        await clienteService.guardar(form);
+        await clienteService.guardar(payload);
       }
-      onSave();
+
+      onSave(cliente, payload);
       onClose();
     } catch (err) {
       setError(err.response?.data?.mensaje || err.message || "Error al guardar el cliente.");
@@ -73,7 +81,6 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
   };
 
   return (
-    // Overlay
     <div
       className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -98,7 +105,7 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
           </button>
         </div>
 
-        {/* Banner error global */}
+        {/* Banner error */}
         {error && (
           <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700">
             ⚠️ {error}
@@ -107,6 +114,8 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
+
+          {/* Campos principales */}
           {FIELDS.map(({ name, label, type, placeholder, required, icon, pattern, title }) => (
             <div key={name}>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -127,12 +136,10 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
                   pattern={pattern}
                   title={title}
                   className={`w-full border rounded-lg pl-9 pr-3 py-2 text-sm text-gray-800 outline-none transition
-                    placeholder:text-gray-400
-                    focus:ring-2 focus:ring-blue-100
+                    placeholder:text-gray-400 focus:ring-2 focus:ring-blue-100
                     ${errores[name]
                       ? "border-red-400 focus:border-red-400"
-                      : "border-gray-300 focus:border-blue-500"
-                    }`}
+                      : "border-gray-300 focus:border-blue-500"}`}
                 />
               </div>
               {errores[name] && (
@@ -141,12 +148,25 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
             </div>
           ))}
 
-          {/* Nota campos obligatorios */}
+          {/* Estado — solo en edición, mismo estilo que UsuarioForm */}
+          {esEdicion && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
+              <select
+                value={estado ? "true" : "false"}
+                onChange={e => setEstado(e.target.value === "true")}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+          )}
+
           <p className="text-xs text-gray-400">
             Los campos marcados con <span className="text-red-400">*</span> son obligatorios.
           </p>
 
-          {/* Acciones */}
           <div className="flex gap-3 pt-1 border-t border-gray-100">
             <button
               type="button"

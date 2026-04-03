@@ -1,17 +1,25 @@
-// Clientes.jsx — Gestión de clientes con modal de crear/editar
-
 import { useEffect, useState } from "react";
-import { Search, UserPlus, Edit, Trash2, RefreshCw } from "lucide-react";
+import { Search, UserPlus, Edit, RefreshCw } from "lucide-react";
 import { clienteService } from "../../services/clienteService";
 import ClienteForm from "../../components/ClienteForm";
+import Swal from "sweetalert2";
+
+const LABELS = {
+  nombre:      "Nombre",
+  telefono:    "Teléfono",
+  correo:      "Correo",
+  direccion:   "Dirección",
+  descripcion: "Notas",
+};
 
 export default function Clientes() {
-  const [clientes,    setClientes]    = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState(null);
-  const [searchTerm,  setSearchTerm]  = useState("");
-  const [modalOpen,   setModalOpen]   = useState(false);
-  const [clienteEdit, setClienteEdit] = useState(null); // null = crear, objeto = editar
+  const [clientes,     setClientes]     = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState(null);
+  const [searchTerm,   setSearchTerm]   = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("Activos");
+  const [modalOpen,    setModalOpen]    = useState(false);
+  const [clienteEdit,  setClienteEdit]  = useState(null);
 
   useEffect(() => { cargarClientes(); }, []);
 
@@ -19,7 +27,7 @@ export default function Clientes() {
     setLoading(true);
     setError(null);
     try {
-      const data = await clienteService.listar();
+      const data = await clienteService.listarTodos();
       setClientes(data);
     } catch (err) {
       setError(err.message);
@@ -32,52 +40,89 @@ export default function Clientes() {
   const abrirEditar = (cliente) => { setClienteEdit(cliente); setModalOpen(true); };
   const cerrarModal = () => { setModalOpen(false); setClienteEdit(null); };
 
-  const handleEliminar = async (id, nombre) => {
-    if (!window.confirm(`¿Eliminar al cliente ${nombre}?`)) return;
-    try {
-      await clienteService.eliminar(id);
-      setClientes(prev => prev.filter(c => c.idCliente !== id));
-    } catch (err) {
-      alert("Error al eliminar: " + err.message);
+  const handleGuardado = (clienteAntes, clienteDespues) => {
+    cargarClientes();
+
+    if (!clienteAntes) {
+      Swal.fire({
+        icon: "success",
+        title: "Cliente creado",
+        html: `
+          <div style="text-align:left; font-size:14px; line-height:2">
+            <b>Nombre:</b> ${clienteDespues.nombre}<br/>
+            <b>Teléfono:</b> ${clienteDespues.telefono}<br/>
+            ${clienteDespues.correo    ? `<b>Correo:</b> ${clienteDespues.correo}<br/>` : ""}
+            ${clienteDespues.direccion ? `<b>Dirección:</b> ${clienteDespues.direccion}<br/>` : ""}
+          </div>
+        `,
+        confirmButtonColor: "#2563eb",
+      });
+    } else {
+      const cambios = [];
+      Object.keys(LABELS).forEach(key => {
+        const antes   = clienteAntes[key]   || "—";
+        const despues = clienteDespues[key] || "—";
+        if (antes !== despues) {
+          cambios.push(`<b>${LABELS[key]}:</b> ${antes} → ${despues}`);
+        }
+      });
+
+      // Detectar cambio de estado
+      if (clienteAntes.estado !== clienteDespues.estado) {
+        cambios.push(`<b>Estado:</b> ${clienteAntes.estado ? "Activo" : "Inactivo"} → ${clienteDespues.estado ? "Activo" : "Inactivo"}`);
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Cliente actualizado",
+        html: cambios.length > 0
+          ? `<div style="text-align:left; font-size:14px; line-height:2">${cambios.join("<br/>")}</div>`
+          : `<p style="font-size:14px; color:#6b7280">No se detectaron cambios.</p>`,
+        confirmButtonColor: "#2563eb",
+      });
     }
   };
 
-  const clientesFiltrados = clientes.filter(c =>
-    c.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.telefono?.includes(searchTerm) ||
-    c.direccion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+  const clientesFiltrados = clientes.filter(c => {
+    const matchSearch =
+      c.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.telefono?.includes(searchTerm) ||
+      c.direccion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.descripcion?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchEstado =
+      filtroEstado === "Todos" ||
+      (filtroEstado === "Activos"   &&  c.estado) ||
+      (filtroEstado === "Inactivos" && !c.estado);
+
+    return matchSearch && matchEstado;
+  });
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center gap-3 text-gray-400 text-sm">
+        <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+        Cargando clientes…
+      </div>
+    </div>
   );
 
-  // ── Loading ──────────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="flex items-center gap-3 text-gray-400 text-sm">
-          <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-          Cargando clientes…
-        </div>
+  if (error) return (
+    <div className="p-8 max-w-7xl mx-auto">
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+        <p className="text-red-600 font-semibold mb-1">Error al cargar clientes</p>
+        <p className="text-red-400 text-sm mb-4">{error}</p>
+        <button
+          onClick={cargarClientes}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-semibold"
+        >
+          Reintentar
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // ── Error ────────────────────────────────────────────────────────────────
-  if (error) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-          <p className="text-red-600 font-semibold mb-1">Error al cargar clientes</p>
-          <p className="text-red-400 text-sm mb-4">{error}</p>
-          <button onClick={cargarClientes} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-semibold">
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
@@ -89,7 +134,7 @@ export default function Clientes() {
           <p className="text-sm text-gray-500 mt-0.5">{clientes.length} clientes registrados</p>
         </div>
 
-        {/* Barra de búsqueda + acciones */}
+        {/* Barra búsqueda + acciones */}
         <div className="bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-5 py-4 mb-5 flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="relative w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -101,7 +146,16 @@ export default function Clientes() {
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
             />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+            <select
+              value={filtroEstado}
+              onChange={e => setFiltroEstado(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition text-gray-600"
+            >
+              <option value="Activos">Solo activos</option>
+              <option value="Inactivos">Solo inactivos</option>
+              <option value="Todos">Todos</option>
+            </select>
             <button
               onClick={cargarClientes}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-white border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
@@ -123,7 +177,7 @@ export default function Clientes() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  {["Nombre", "Teléfono", "Correo", "Dirección", "Descripción", "Fecha registro", "Acciones"].map(h => (
+                  {["Nombre", "Teléfono", "Correo", "Dirección", "Notas", "Fecha registro", "Estado", "Acciones"].map(h => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-400">
                       {h}
                     </th>
@@ -133,40 +187,54 @@ export default function Clientes() {
               <tbody className="divide-y divide-gray-100">
                 {clientesFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-gray-400 text-sm">
+                    <td colSpan={8} className="px-5 py-12 text-center text-gray-400 text-sm">
                       <div className="text-3xl mb-2">👤</div>
-                      {searchTerm ? "No se encontraron clientes con esa búsqueda" : "No hay clientes registrados"}
+                      {searchTerm
+                        ? "No se encontraron clientes con esa búsqueda"
+                        : filtroEstado === "Inactivos"
+                          ? "No hay clientes inactivos"
+                          : "No hay clientes registrados"}
                     </td>
                   </tr>
                 ) : clientesFiltrados.map(cliente => (
-                  <tr key={cliente.idCliente} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3 text-sm font-semibold text-gray-800 whitespace-nowrap">{cliente.nombre}</td>
+                  <tr
+                    key={cliente.idCliente}
+                    className={`hover:bg-gray-50 transition-colors ${!cliente.estado ? "opacity-60" : ""}`}
+                  >
+                    <td className="px-5 py-3 text-sm font-semibold text-gray-800 whitespace-nowrap">
+                      {cliente.nombre}
+                    </td>
                     <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">{cliente.telefono}</td>
-                    <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">{cliente.correo || "—"}</td>
+                    <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">{cliente.correo    || "—"}</td>
                     <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">{cliente.direccion || "—"}</td>
-                    <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap max-w-xs truncate">{cliente.descripcion || "—"}</td>
+                    <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap max-w-xs truncate">
+                      {cliente.descripcion || "—"}
+                    </td>
                     <td className="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">
                       {cliente.fechaRegistro
                         ? new Date(cliente.fechaRegistro).toLocaleDateString("es-CO")
                         : "—"}
                     </td>
+
+                    {/* Badge estado */}
                     <td className="px-5 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => abrirEditar(cliente)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 transition"
-                          title="Editar"
-                        >
-                          <Edit size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleEliminar(cliente.idCliente, cliente.nombre)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold
+                        ${cliente.estado
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-500"}`}>
+                        {cliente.estado ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+
+                    {/* Acciones — solo editar */}
+                    <td className="px-5 py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => abrirEditar(cliente)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 transition"
+                        title="Editar"
+                      >
+                        <Edit size={15} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -174,7 +242,6 @@ export default function Clientes() {
             </table>
           </div>
 
-          {/* Footer tabla */}
           {clientesFiltrados.length > 0 && (
             <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
               <p className="text-xs text-gray-400">
@@ -185,12 +252,15 @@ export default function Clientes() {
         </div>
       </div>
 
-      {/* Modal crear/editar */}
+      {/* Modal */}
       {modalOpen && (
         <ClienteForm
           cliente={clienteEdit}
           onClose={cerrarModal}
-          onSave={cargarClientes}
+          onSave={(clienteAntes, clienteDespues) => {
+            handleGuardado(clienteAntes, clienteDespues);
+            cerrarModal();
+          }}
         />
       )}
     </div>

@@ -1,8 +1,16 @@
-import api from '../config/api'; // ajusta la ruta según tu estructura de carpetas
+import api from '../config/api';
 
 export const clienteService = {
+
+    // Solo activos — para pedidos, búsquedas rápidas, etc.
     listar: async () => {
         const res = await api.get('/clientes');
+        return res.data;
+    },
+
+    // Activos + inactivos — para la vista de administración
+    listarTodos: async () => {
+        const res = await api.get('/clientes/listar-todos');
         return res.data;
     },
 
@@ -34,8 +42,12 @@ export const clienteService = {
         await api.delete(`/clientes/${id}`);
     },
 
+    activar: async (id) => {
+        await api.patch(`/clientes/${id}/activar`);
+    },
+
     buscarPorNombre: async (nombre) => {
-        const res = await api.get('/clientes/buscar', {
+        const res = await api.get('/clientes/buscar-nombre', {
             params: { nombre },
         });
         return res.data;

@@ -26,7 +26,7 @@ export default function AppRouter() {
         {/* Public routes */}
         <Route path="/login" element={<Login setRol={setRol} />} />
         <Route path="/register" element={<Register />} />
-
+        
         {/* No role → send to login */}
         {!rol && <Route path="/*" element={<Navigate to="/login" />} />}
 

@@ -24,22 +24,23 @@ export const ingresoService = {
   },
 
   // Crear un nuevo ingreso
-  crear: async (ingreso) => {
-    try {
-      const ingresoData = {
-        monto: ingreso.monto,
-        descripcion: ingreso.descripcion,
-        fecha: ingreso.fecha,
-        metodoPago: { idMetodo: ingreso.metodoPago.idMetodo }
-      };
-      
-      const response = await api.post('/ingresos', ingresoData);
-      return response.data;
-    } catch (error) {
-      console.error('Error al crear ingreso:', error);
-      throw error;
-    }
-  },
+crear: async (ingreso) => {
+  try {
+    const ingresoData = {
+      monto: ingreso.monto,
+      descripcion: ingreso.descripcion,
+      fecha: ingreso.fecha,
+      metodoPago: { idMetodo: ingreso.metodoPago.idMetodo },
+      pedido: ingreso.pedido ? { idPedido: ingreso.pedido.idPedido } : null
+    };
+    
+    const response = await api.post('/ingresos', ingresoData);
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear ingreso:', error);
+    throw error;
+  }
+},
 
   // Actualizar un ingreso existente
   actualizar: async (id, ingreso) => {

@@ -6,27 +6,23 @@ export default function Navbar({ nombre = "Juan" }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  // 🔹 Manejo correcto del cierre de sesión
   const handleLogout = () => {
-    localStorage.clear(); // limpia rol, nombre, etc.
-    navigate("/"); // vuelve al login
-    window.location.reload(); // 🔁 evita pantalla blanca (reinicia el router)
+    localStorage.clear();
+    navigate("/");
+    window.location.reload();
   };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center">
-        {/* Logo */}
         <h1
-          onClick={() => navigate("/home")}
+          onClick={() => navigate("/mesero/home")}
           className="text-2xl font-bold text-gray-800 tracking-tight cursor-pointer"
         >
           Restaurante <span className="text-blue-600">Pancho Paisa</span>
         </h1>
 
-        {/* Navegación + usuario */}
         <div className="flex items-center ml-auto space-x-8">
-          {/* Links */}
           <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
             <button onClick={() => navigate("/mesero/home")} className="hover:text-blue-600">
               Inicio
@@ -37,9 +33,11 @@ export default function Navbar({ nombre = "Juan" }) {
             <button onClick={() => navigate("/mesero/mesas")} className="hover:text-blue-600">
               Mesas
             </button>
+            <button onClick={() => navigate("/mesero/informes")} className="hover:text-blue-600">
+              Informes
+            </button>
           </nav>
 
-          {/* Usuario */}
           <div className="relative">
             <button
               onClick={() => setOpen(!open)}
