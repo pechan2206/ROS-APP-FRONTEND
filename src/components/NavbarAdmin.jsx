@@ -1,17 +1,15 @@
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import Logout from "./Logout";
 
 export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  // 🔹 Función de cierre de sesión unificada
   const handleLogout = () => {
-    localStorage.clear(); // borra rol, nombre, etc.
-    navigate("/"); // vuelve al login
-    window.location.reload(); // 🔁 reinicia el enrutador para evitar pantalla blanca
+    localStorage.clear();
+    navigate("/");
+    window.location.reload();
   };
 
   return (
@@ -26,42 +24,12 @@ export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
 
         <div className="flex items-center ml-auto space-x-8">
           <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
-            <button
-              onClick={() => navigate("/admin/dashboard")}
-              className="hover:text-blue-600"
-            >
-              Inicio
-            </button>
-            <button
-              onClick={() => navigate("/admin/usuarios")}
-              className="hover:text-blue-600"
-            >
-              Usuarios
-            </button>
-            <button
-              onClick={() => navigate("/admin/clientes")}
-              className="hover:text-blue-600"
-            >
-              Clientes
-            </button>
-            <button
-              onClick={() => navigate("/admin/productos")}
-              className="hover:text-blue-600"
-            >
-              Productos
-            </button>
-            <button
-              onClick={() => navigate("/admin/proveedores")}
-              className="hover:text-blue-600"
-            >
-              Proveedores
-            </button>
-            <button
-              onClick={() => navigate("/admin/reportes")}
-              className="hover:text-blue-600"
-            >
-              Reportes
-            </button>
+            <button onClick={() => navigate("/admin/dashboard")} className="hover:text-blue-600 transition">Inicio</button>
+            <button onClick={() => navigate("/admin/usuarios")} className="hover:text-blue-600 transition">Usuarios</button>
+            <button onClick={() => navigate("/admin/clientes")} className="hover:text-blue-600 transition">Clientes</button>
+            <button onClick={() => navigate("/admin/productos")} className="hover:text-blue-600 transition">Productos</button>
+            <button onClick={() => navigate("/admin/proveedores")} className="hover:text-blue-600 transition">Proveedores</button>
+            <button onClick={() => navigate("/admin/reportes")} className="hover:text-blue-600 transition">Reportes</button>
           </nav>
 
           <div className="relative">
@@ -69,12 +37,10 @@ export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
               onClick={() => setOpen(!open)}
               className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
-                {nombre[0]}
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
+                {nombre[0]?.toUpperCase()}
               </div>
-              <span className="font-medium text-gray-800 hidden sm:block">
-                {nombre}
-              </span>
+              <span className="font-medium text-gray-800 hidden sm:block">{nombre}</span>
               <ChevronDownIcon className="h-4 w-4 text-gray-600" />
             </button>
 
@@ -87,7 +53,12 @@ export default function NavbarAdmin({ nombre = "Administrador", setRol }) {
                   Perfil
                 </button>
                 <hr className="my-1" />
-                <Logout setRol={setRol} />
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  Cerrar sesión
+                </button>
               </div>
             )}
           </div>

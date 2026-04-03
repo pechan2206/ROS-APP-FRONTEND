@@ -1,39 +1,64 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
-export default function NavbarCocinero({ nombre, setRol }) {
+export default function NavbarCocinero({ nombre = "Cocinero", setRol }) {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("rol");
-    setRol(null);
-    navigate("/login");
+    localStorage.clear();
+    navigate("/");
+    window.location.reload();
   };
 
   return (
-    <nav className="bg-orange-600 text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo / Título */}
-        <div className="text-2xl font-bold">🍳 Cocina - {nombre}</div>
+    <header className="bg-white shadow-md sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center">
+        <h1
+          onClick={() => navigate("/cocinero/cocina")}
+          className="text-2xl font-bold text-gray-800 tracking-tight cursor-pointer"
+        >
+          Panel <span className="text-orange-600">Cocina</span>
+        </h1>
 
-        {/* Links de navegación */}
-        <div className="flex gap-6 items-center">
-          <Link
-            to="/cocinero/cocina"
-            className="hover:text-orange-200 transition font-medium"
-          >
-            📋 Pedidos
-          </Link>
+        <div className="flex items-center ml-auto space-x-8">
+          <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
+            <button onClick={() => navigate("/cocinero/cocina")} className="hover:text-orange-600 transition">Pedidos</button>
+          </nav>
 
-          {/* Botón de cerrar sesión */}
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-orange-800 hover:bg-orange-900 rounded-lg transition"
-          >
-            Cerrar Sesión
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setOpen(!open)}
+              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition"
+            >
+              <div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-semibold text-sm">
+                {nombre[0]?.toUpperCase()}
+              </div>
+              <span className="font-medium text-gray-800 hidden sm:block">{nombre}</span>
+              <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+            </button>
+
+            {open && (
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-100">
+                <button
+                  onClick={() => navigate("/cocinero/perfil")}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Perfil
+                </button>
+                <hr className="my-1" />
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }

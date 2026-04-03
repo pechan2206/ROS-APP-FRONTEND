@@ -1,22 +1,22 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import NavbarCocinero from "../components/NavbarCocinero";
 import Cocina from "../pages/cocinero/Cocinero";
+import PerfilPage from "../components/PerfilPage";
 
 export default function CocineroRouter({ setRol }) {
-  return (
-    <>
-      {/* Navbar del cocinero */}
-      <NavbarCocinero nombre="Pedro" setRol={setRol} />
+  const nombre = localStorage.getItem("nombre") || "Pedro";
 
-      {/* Contenido principal */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <Routes>
-          {/* ❌ ERROR CORREGIDO: Usar path="/" en lugar de index para redirigir la raíz del router anidado */}
-          <Route path="/" element={<Navigate to="cocina" />} />
-          <Route path="cocina" element={<Cocina />} />
-          <Route path="*" element={<p className="text-gray-500">Página no encontrada</p>} />
-        </Routes>
-      </main>
-    </>
-  );
+  return (
+    <>
+      <NavbarCocinero nombre={nombre} setRol={setRol} />
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <Routes>
+          <Route path="/" element={<Navigate to="cocina" />} />
+          <Route path="cocina" element={<Cocina />} />
+          <Route path="perfil" element={<PerfilPage nombre={nombre} rol="cocinero" rutaInicio="/cocinero/cocina" />} />
+          <Route path="*" element={<p className="text-gray-500">Página no encontrada</p>} />
+        </Routes>
+      </main>
+    </>
+  );
 }

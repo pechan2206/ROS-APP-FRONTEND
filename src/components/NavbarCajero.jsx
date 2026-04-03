@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
 export default function NavbarCajero({ nombre = "Cajero", setRol }) {
@@ -24,12 +24,8 @@ export default function NavbarCajero({ nombre = "Cajero", setRol }) {
 
         <div className="flex items-center ml-auto space-x-8">
           <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
-            <Link to="/cajero/caja" className="hover:text-green-600 transition">
-              💵 Cobros
-            </Link>
-            <Link to="/cajero/reportes" className="hover:text-green-600 transition"> {/* 👈 NUEVO */}
-              📊 Reportes
-            </Link>
+            <button onClick={() => navigate("/cajero/caja")} className="hover:text-green-600 transition">Cobros</button>
+            <button onClick={() => navigate("/cajero/reportes")} className="hover:text-green-600 transition">Reportes</button>
           </nav>
 
           <div className="relative">
@@ -37,7 +33,7 @@ export default function NavbarCajero({ nombre = "Cajero", setRol }) {
               onClick={() => setOpen(!open)}
               className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition"
             >
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-semibold">
+              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-semibold text-sm">
                 {nombre[0]?.toUpperCase()}
               </div>
               <span className="font-medium text-gray-800 hidden sm:block">{nombre}</span>
@@ -46,10 +42,16 @@ export default function NavbarCajero({ nombre = "Cajero", setRol }) {
 
             {open && (
               <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-100">
+                <button
+                  onClick={() => navigate("/cajero/perfil")}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Perfil
+                </button>
                 <hr className="my-1" />
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                 >
                   Cerrar sesión
                 </button>
