@@ -177,9 +177,9 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
 
   const cancelarPedido = () => {
     SweetAlert.fire({
-      title: "¿Cancelar pedido?", text: "Esta acción no se puede deshacer.",
+      title: "¿Anular pedido?", text: "Esta acción no se puede deshacer.",
       icon: "warning", showCancelButton: true,
-      confirmButtonText: "Sí, cancelar", cancelButtonText: "No",
+      confirmButtonText: "Sí, Anular", cancelButtonText: "No",
       confirmButtonColor: "#dc2626",
     }).then(async r => {
       if (r.isConfirmed) {
@@ -342,7 +342,7 @@ function PanelFormulario({ pedidoEdit, onGuardar, onCancelarEdit }) {
               </svg>
               Imprimir
             </Btn>
-            <Btn small variant="danger" onClick={cancelarPedido}>Cancelar</Btn>
+            <Btn small variant="danger" onClick={cancelarPedido}>Anular</Btn>
           </div>
         )}
       </div>

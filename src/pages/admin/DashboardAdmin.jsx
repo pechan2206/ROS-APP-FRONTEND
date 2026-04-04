@@ -66,7 +66,7 @@ export default function DashboardAdmin() {
         pedidosPendientes: pedidos.filter((p) => p.estado === "Pendiente").length,
         mesasOcupadas: mesas.filter((m) => m.estado === "Ocupada").length,
         pedidosEntregados: pedidos.filter((p) => p.estado === "Entregado").length,
-        pedidosCancelados: pedidos.filter((p) => p.estado === "Cancelado").length,
+        pedidosCancelados: pedidos.filter((p) => p.estado === "Anulado").length,
       });
     } catch (error) {
       console.error("Error al cargar métricas:", error);
@@ -242,7 +242,7 @@ export default function DashboardAdmin() {
             {/* Pedidos cancelados */}
             <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-700">Pedidos Cancelados</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Pedidos Anulados</h3>
                 <XCircleIcon className="w-8 h-8 text-red-500" />
               </div>
               <p className="text-4xl font-bold text-red-600">

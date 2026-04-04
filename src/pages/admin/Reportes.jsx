@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { FileText, TrendingUp, Users, Package, Calendar, Download, X } from "lucide-react";
+import { FileText, TrendingUp, Package, Calendar, Download, X } from "lucide-react";
 import ReportePedidosPorTipo from "../../components/Reportes/ReportePedidosPorTipo";
 import ReporteVentasPorPeriodo from "../../components/Reportes/ReporteVentasPorPeriodo";
 import ReporteVentasDiarias from "../../components/Reportes/ReporteVentasDiarias";
 import ReporteProductosMasVendidos from "../../components/Reportes/ReporteProductosMasVendidos";
+import ReporteExcel from "../../components/Reportes/ReporteExcel";
 
 export default function Reportes() {
   const [reporteActivo, setReporteActivo] = useState(null);
@@ -18,7 +19,7 @@ export default function Reportes() {
       descripcion: "Visualiza la cantidad de pedidos por tipo (Mesa, Domicilio, Para llevar)",
       icono: <Package size={40} />,
       color: "#ff6384",
-      habilitado: true
+      habilitado: true,
     },
     {
       id: "ventas-periodo",
@@ -26,7 +27,7 @@ export default function Reportes() {
       descripcion: "Analiza las ventas en un rango de fechas específico",
       icono: <TrendingUp size={40} />,
       color: "#36a2eb",
-      habilitado: true
+      habilitado: true,
     },
     {
       id: "productos-vendidos",
@@ -34,15 +35,15 @@ export default function Reportes() {
       descripcion: "Conoce cuáles son los productos con mayor demanda",
       icono: <FileText size={40} />,
       color: "#ffce56",
-      habilitado: true  // ← activado
+      habilitado: true,
     },
     {
-      id: "empleados-desempeño",
-      titulo: "Desempeño de Empleados",
-      descripcion: "Evalúa el rendimiento y productividad del personal",
-      icono: <Users size={40} />,
-      color: "#4bc0c0",
-      habilitado: false
+      id: "exportar-excel",
+      titulo: "Exportar a Excel",
+      descripcion: "Descarga la información de usuarios, proveedores, productos y clientes en un archivo Excel",
+      icono: <Download size={40} />,
+      color: "#22c55e",
+      habilitado: true,
     },
     {
       id: "ventas-diarias",
@@ -50,7 +51,7 @@ export default function Reportes() {
       descripcion: "Resumen de ventas día por día del mes actual",
       icono: <Calendar size={40} />,
       color: "#9966ff",
-      habilitado: true
+      habilitado: true,
     },
     {
       id: "inventario",
@@ -58,33 +59,33 @@ export default function Reportes() {
       descripcion: "Revisa el stock actual y productos con bajo inventario",
       icono: <Package size={40} />,
       color: "#ff9f40",
-      habilitado: false
-    }
+      habilitado: false,
+    },
   ];
 
   const renderComponente = () => {
     switch (reporteActivo) {
-      case "pedidos-tipo":       return <ReportePedidosPorTipo />;
-      case "ventas-periodo":     return <ReporteVentasPorPeriodo />;
+      case "pedidos-tipo": return <ReportePedidosPorTipo />;
+      case "ventas-periodo": return <ReporteVentasPorPeriodo />;
       case "productos-vendidos": return <ReporteProductosMasVendidos />;
-      case "ventas-diarias":     return <ReporteVentasDiarias />;
-      default:                   return null;
+      case "exportar-excel": return <ReporteExcel />;
+      case "ventas-diarias": return <ReporteVentasDiarias />;
+      default: return null;
     }
   };
 
   const tituloActivo = reportes.find(r => r.id === reporteActivo)?.titulo;
-  const colorActivo  = reportes.find(r => r.id === reporteActivo)?.color;
+  const colorActivo = reportes.find(r => r.id === reporteActivo)?.color;
 
   return (
     <>
-      {/* ── MODAL ── */}
+      {/* MODAL */}
       {reporteActivo && (
         <div
           className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto py-10"
           onClick={(e) => { if (e.target === e.currentTarget) cerrarReporte(); }}
         >
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4">
-            {/* Header del modal */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colorActivo }} />
@@ -97,8 +98,6 @@ export default function Reportes() {
                 <X size={20} />
               </button>
             </div>
-
-            {/* Contenido */}
             <div className="p-6">
               {renderComponente()}
             </div>
@@ -106,7 +105,7 @@ export default function Reportes() {
         </div>
       )}
 
-      {/* ── PÁGINA ── */}
+      {/* PÁGINA */}
       <div className="p-8 max-w-7xl mx-auto">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Sistema de Reportes</h1>
@@ -120,7 +119,8 @@ export default function Reportes() {
               className={`
                 border-2 border-gray-200 rounded-xl p-6 bg-white
                 transition-all duration-300 shadow-md
-                ${reporte.habilitado ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1' : 'cursor-not-allowed'}
+                flex flex-col h-full
+                ${reporte.habilitado ? "cursor-pointer hover:shadow-xl hover:-translate-y-1" : "cursor-not-allowed"}
               `}
               onMouseEnter={(e) => {
                 if (reporte.habilitado) {
@@ -130,8 +130,8 @@ export default function Reportes() {
               }}
               onMouseLeave={(e) => {
                 if (reporte.habilitado) {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
                 }
               }}
               onClick={() => reporte.habilitado && abrirReporte(reporte.id)}
@@ -140,15 +140,21 @@ export default function Reportes() {
                 {reporte.icono}
               </div>
 
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">{reporte.titulo}</h3>
-              <p className="text-sm text-gray-600 leading-relaxed mb-4">{reporte.descripcion}</p>
+              <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                {reporte.titulo}
+              </h3>
+
+              <p className="text-sm text-gray-600 leading-relaxed mb-4 min-h-[60px]">
+                {reporte.descripcion}
+              </p>
 
               <button
                 disabled={!reporte.habilitado}
                 className={`
                   w-full py-2.5 px-5 rounded-lg font-semibold text-sm text-white
                   flex items-center justify-center gap-2 transition-all
-                  ${reporte.habilitado ? 'hover:opacity-90' : 'cursor-not-allowed opacity-60'}
+                  mt-auto
+                  ${reporte.habilitado ? "hover:opacity-90" : "cursor-not-allowed opacity-60"}
                 `}
                 style={{ backgroundColor: reporte.color }}
               >

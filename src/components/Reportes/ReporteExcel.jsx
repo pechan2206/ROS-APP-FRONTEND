@@ -6,10 +6,10 @@ import { platosService } from "../../services/platosService";
 import { clienteService } from "../../services/clienteService";
 
 const OPCIONES = [
-  { id: "usuarios",    label: "Usuarios",    emoji: "👤", color: "#4bc0c0" },
-  { id: "proveedores", label: "Proveedores", emoji: "🏭", color: "#ff9f40" },
-  { id: "productos",   label: "Productos",   emoji: "🍽️", color: "#ffce56" },
-  { id: "clientes",    label: "Clientes",    emoji: "🧑‍🤝‍🧑", color: "#36a2eb" },
+  { id: "usuarios",    label: "Usuarios",    emoji: "", color: "#4bc0c0" },
+  { id: "proveedores", label: "Proveedores", emoji: "", color: "#ff9f40" },
+  { id: "productos",   label: "Productos",   emoji: "", color: "#ffce56" },
+  { id: "clientes",    label: "Clientes",    emoji: "", color: "#36a2eb" },
 ];
 
 const obtenerDatos = async (tipo) => {
@@ -28,19 +28,19 @@ const mapearDatos = (tipo, datos) => {
       return datos.map(u => ({
         "ID":       u.idUsuario,
         "Nombre":   u.nombre,
-        "Correo":   u.correo    || "—",
-        "Teléfono": u.telefono  || "—",
+        "Correo":   u.correo   || "—",
+        "Teléfono": u.telefono || "—",
         "Rol":      u.rol?.nombre || "—",
         "Estado":   u.estado === false ? "Inactivo" : "Activo",
       }));
     case "proveedores":
       return datos.map(p => ({
-        "ID":         p.idProveedor,
-        "Nombre":     p.nombre,
-        "Teléfono":   p.telefono  || "—",
-        "Correo":     p.correo    || "—",
-        "Dirección":  p.direccion || "—",
-        "Estado":     p.estado === false ? "Inactivo" : "Activo",
+        "ID":        p.idProveedor,
+        "Nombre":    p.nombre,
+        "Teléfono":  p.telefono  || "—",
+        "Correo":    p.correo    || "—",
+        "Dirección": p.direccion || "—",
+        "Estado":    p.estado === false ? "Inactivo" : "Activo",
       }));
     case "productos":
       return datos.map(p => ({
@@ -53,16 +53,16 @@ const mapearDatos = (tipo, datos) => {
       }));
     case "clientes":
       return datos.map(c => ({
-        "ID":               c.idCliente,
-        "Nombre":           c.nombre,
-        "Teléfono":         c.telefono  || "—",
-        "Correo":           c.correo    || "—",
-        "Dirección":        c.direccion || "—",
-        "Notas":            c.descripcion || "—",
-        "Fecha registro":   c.fechaRegistro
+        "ID":             c.idCliente,
+        "Nombre":         c.nombre,
+        "Teléfono":       c.telefono    || "—",
+        "Correo":         c.correo      || "—",
+        "Dirección":      c.direccion   || "—",
+        "Notas":          c.descripcion || "—",
+        "Fecha registro": c.fechaRegistro
           ? new Date(c.fechaRegistro).toLocaleDateString("es-CO")
           : "—",
-        "Estado":           c.estado === false ? "Inactivo" : "Activo",
+        "Estado":         c.estado === false ? "Inactivo" : "Activo",
       }));
     default: return datos;
   }
@@ -75,6 +75,7 @@ export default function ReporteExcel() {
   const [error,         setError]         = useState(null);
 
   const toggleOpcion = (id) => {
+    setError(null);
     setSeleccionados(prev =>
       prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
     );
@@ -94,7 +95,6 @@ export default function ReporteExcel() {
       for (const tipo of seleccionados) {
         let datos = await obtenerDatos(tipo);
 
-        // Filtrar por estado si aplica
         if (filtroEstado === "Activos") {
           datos = datos.filter(d => d.estado !== false);
         } else if (filtroEstado === "Inactivos") {
@@ -102,11 +102,17 @@ export default function ReporteExcel() {
         }
 
         const filas = mapearDatos(tipo, datos);
-        const ws    = XLSX.utils.json_to_sheet(filas);
 
-        // Ancho de columnas automático
-        const cols = Object.keys(filas[0] || {}).map(key => ({
-          wch: Math.max(key.length, ...filas.map(f => String(f[key] || "").length)) + 2
+        if (filas.length === 0) {
+          // Hoja vacía con encabezado indicativo
+          const ws = XLSX.utils.aoa_to_sheet([["Sin datos para el filtro seleccionado"]]);
+          XLSX.utils.book_append_sheet(wb, ws, OPCIONES.find(o => o.id === tipo)?.label || tipo);
+          continue;
+        }
+
+        const ws   = XLSX.utils.json_to_sheet(filas);
+        const cols = Object.keys(filas[0]).map(key => ({
+          wch: Math.max(key.length, ...filas.map(f => String(f[key] || "").length)) + 2,
         }));
         ws["!cols"] = cols;
 
@@ -114,7 +120,7 @@ export default function ReporteExcel() {
         XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
       }
 
-      const fecha     = new Date().toLocaleDateString("es-CO").replace(/\//g, "-");
+      const fecha         = new Date().toLocaleDateString("es-CO").replace(/\//g, "-");
       const nombreArchivo = `Reporte_${fecha}.xlsx`;
       XLSX.writeFile(wb, nombreArchivo);
 
@@ -128,7 +134,7 @@ export default function ReporteExcel() {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Selección de categorías */}
+      {/* Selección */}
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-3">
           ¿Qué información deseas exportar?
@@ -148,14 +154,14 @@ export default function ReporteExcel() {
               >
                 <span className="text-xl">{op.emoji}</span>
                 {op.label}
-                {activo && <span className="ml-auto text-white">✓</span>}
+                {activo && <span className="ml-auto">✓</span>}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Filtro de estado */}
+      {/* Filtro estado */}
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-2">Filtrar por estado</p>
         <div className="flex gap-2">
@@ -188,8 +194,8 @@ export default function ReporteExcel() {
             {seleccionados.map(s => OPCIONES.find(o => o.id === s)?.label).join(", ")}
           </span>
           {" "}— Estado: <span className="font-semibold text-gray-800">{filtroEstado}</span>
-          <br/>
-          <span className="text-xs text-gray-400">Cada categoría tendrá su propia hoja en el Excel.</span>
+          <br />
+          <span className="text-xs text-gray-400">Cada categoría tendrá su propia hoja en el archivo Excel.</span>
         </div>
       )}
 
@@ -205,7 +211,7 @@ export default function ReporteExcel() {
             Generando Excel…
           </>
         ) : (
-          <>📥 Descargar Excel</>
+          <>Descargar Excel</>
         )}
       </button>
     </div>
