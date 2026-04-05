@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { clienteService } from "../services/clienteService";
+import { User, Phone, Mail, MapPin, FileText, X, AlertTriangle } from "lucide-react";
 
 const FIELDS = [
-  { name: "nombre",      label: "Nombre completo",   type: "text",  placeholder: "Ej: María García",         required: true,  icon: "👤" },
-  { name: "telefono",    label: "Teléfono",           type: "tel",   placeholder: "Ej: 3001234567",           required: true,  icon: "📱", pattern: "3\\d{9}", title: "Debe iniciar con 3 y tener 10 dígitos" },
-  { name: "correo",      label: "Correo electrónico", type: "email", placeholder: "Ej: maria@email.com",     required: false, icon: "✉️" },
-  { name: "direccion",   label: "Dirección",          type: "text",  placeholder: "Ej: Cra 10 #45-20",       required: false, icon: "📍" },
-  { name: "descripcion", label: "Notas adicionales",  type: "text",  placeholder: "Alergias, preferencias…", required: false, icon: "📝" },
+  { name: "nombre",      label: "Nombre completo",   type: "text",  placeholder: "Ej: María García",         required: true,  icon: User },
+  { name: "telefono",    label: "Teléfono",           type: "tel",   placeholder: "Ej: 3001234567",           required: true,  icon: Phone, pattern: "3\\d{9}", title: "Debe iniciar con 3 y tener 10 dígitos" },
+  { name: "correo",      label: "Correo electrónico", type: "email", placeholder: "Ej: maria@email.com",     required: false, icon: Mail },
+  { name: "direccion",   label: "Dirección",          type: "text",  placeholder: "Ej: Cra 10 #45-20",       required: false, icon: MapPin },
+  { name: "descripcion", label: "Notas adicionales",  type: "text",  placeholder: "Alergias, preferencias…", required: false, icon: FileText },
 ];
 
 const LABELS = {
@@ -99,32 +100,32 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition text-sm font-bold"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
 
         {/* Banner error */}
         {error && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700">
-            ⚠️ {error}
+          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700 flex items-center gap-2">
+            <AlertTriangle size={16} />
+            {error}
           </div>
         )}
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
 
-          {/* Campos principales */}
-          {FIELDS.map(({ name, label, type, placeholder, required, icon, pattern, title }) => (
+          {FIELDS.map(({ name, label, type, placeholder, required, icon: Icon, pattern, title }) => (
             <div key={name}>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 {label}
                 {required && <span className="text-red-500 ml-0.5">*</span>}
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base pointer-events-none select-none">
-                  {icon}
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Icon size={16} />
                 </span>
                 <input
                   type={type}
@@ -148,7 +149,6 @@ export default function ClienteForm({ cliente, onClose, onSave }) {
             </div>
           ))}
 
-          {/* Estado — solo en edición, mismo estilo que UsuarioForm */}
           {esEdicion && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>

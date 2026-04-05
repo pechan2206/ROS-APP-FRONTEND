@@ -1,9 +1,7 @@
-// DetallesPedido.jsx — Detalles y edición de un pedido
-// Opción B: marca filas modificadas visualmente y solo guarda las que cambiaron
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { detallePedidoService } from "../../services/detallePedidoService";
+import { UtensilsCrossed, AlertTriangle, Loader2, ArrowLeft, X } from "lucide-react";
 import Swal from "sweetalert2";
 
 const formatCOP = (num) => "$" + Number(num).toLocaleString("es-CO");
@@ -17,10 +15,8 @@ export default function DetallesPedido() {
   const [guardando, setGuardando] = useState(false);
   const [total,     setTotal]     = useState(0);
 
-  // Set de IDs que fueron modificados en esta sesión
   const [modificados, setModificados] = useState(new Set());
 
-  // ── Carga ────────────────────────────────────────────────────────────────
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -29,12 +25,11 @@ export default function DetallesPedido() {
           ...item,
           precioUnitario: item.precioUnitario ?? item.plato?.precio ?? 0,
           subtotal: (item.precioUnitario ?? item.plato?.precio ?? 0) * item.cantidad,
-          // Guardamos la cantidad original para saber si cambió
           cantidadOriginal: item.cantidad,
         }));
         setDetalles(con);
         calcularTotal(con);
-        setModificados(new Set()); // reset al recargar
+        setModificados(new Set());
       } catch (e) {
         console.error("Error al cargar detalles:", e);
       } finally {
@@ -47,35 +42,28 @@ export default function DetallesPedido() {
   const calcularTotal = (lista) =>
     setTotal(lista.reduce((s, i) => s + i.subtotal, 0));
 
-  // ── Cantidad ─────────────────────────────────────────────────────────────
   const actualizarCantidad = (idDetalle, nuevaCantidad) => {
     setDetalles((prev) => {
       const updated = prev.map((d) => {
         if (d.idDetallePedido !== idDetalle) return d;
-        return {
-          ...d,
-          cantidad: nuevaCantidad,
-          subtotal: nuevaCantidad * d.precioUnitario,
-        };
+        return { ...d, cantidad: nuevaCantidad, subtotal: nuevaCantidad * d.precioUnitario };
       });
       calcularTotal(updated);
       return updated;
     });
 
-    // Marcar como modificado solo si la cantidad difiere de la original
     setModificados((prev) => {
       const next = new Set(prev);
       const original = detalles.find((d) => d.idDetallePedido === idDetalle);
       if (original && nuevaCantidad !== original.cantidadOriginal) {
         next.add(idDetalle);
       } else {
-        next.delete(idDetalle); // volvió al valor original → ya no está "modificado"
+        next.delete(idDetalle);
       }
       return next;
     });
   };
 
-  // ── Eliminar ─────────────────────────────────────────────────────────────
   const eliminarDetalle = async (idDetalle) => {
     const confirm = await Swal.fire({
       title: "¿Eliminar producto?",
@@ -101,7 +89,6 @@ export default function DetallesPedido() {
     }
   };
 
-  // ── Guardar solo los modificados ─────────────────────────────────────────
   const guardarCambios = async () => {
     if (modificados.size === 0) {
       Swal.fire({ icon: "info", title: "Sin cambios", text: "No hay productos modificados para guardar.", timer: 1500, showConfirmButton: false });
@@ -122,12 +109,9 @@ export default function DetallesPedido() {
         });
       }
 
-      // Una vez guardado, actualizar cantidadOriginal y limpiar modificados
       setDetalles((prev) =>
         prev.map((d) =>
-          modificados.has(d.idDetallePedido)
-            ? { ...d, cantidadOriginal: d.cantidad }
-            : d
+          modificados.has(d.idDetallePedido) ? { ...d, cantidadOriginal: d.cantidad } : d
         )
       );
       setModificados(new Set());
@@ -146,12 +130,11 @@ export default function DetallesPedido() {
     }
   };
 
-  // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="flex items-center gap-3 text-gray-400 text-sm">
-          <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          <Loader2 size={18} className="animate-spin text-blue-500" />
           Cargando detalles del pedido…
         </div>
       </div>
@@ -160,7 +143,6 @@ export default function DetallesPedido() {
 
   const hayModificados = modificados.size > 0;
 
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-6">
 
@@ -170,14 +152,13 @@ export default function DetallesPedido() {
           onClick={() => navigate(-1)}
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 font-medium mb-4 transition"
         >
-          ← Volver
+          <ArrowLeft size={15} /> Volver
         </button>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-0.5">Pedido</p>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Detalles #{id}</h1>
           </div>
-          {/* Total */}
           <div className="bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-5 py-3 text-right">
             <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-0.5">Total del pedido</p>
             <p className="text-2xl font-bold text-gray-800">{formatCOP(total)}</p>
@@ -185,10 +166,10 @@ export default function DetallesPedido() {
         </div>
       </div>
 
-      {/* Banner de cambios pendientes */}
+      {/* Banner cambios pendientes */}
       {hayModificados && (
         <div className="mb-4 flex items-center gap-3 bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3">
-          <span className="text-lg">⚠️</span>
+          <AlertTriangle size={18} className="text-yellow-500 shrink-0" />
           <p className="text-sm font-semibold text-yellow-800 flex-1">
             Tienes <span className="underline">{modificados.size} producto{modificados.size !== 1 ? "s" : ""} con cambios sin guardar</span>.
           </p>
@@ -223,9 +204,9 @@ export default function DetallesPedido() {
 
         {/* Lista vacía */}
         {detalles.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-5xl mb-3">🍽️</div>
-            <p className="font-semibold text-gray-600 mb-1">Sin productos</p>
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
+            <UtensilsCrossed size={48} strokeWidth={1.5} className="text-gray-300" />
+            <p className="font-semibold text-gray-600">Sin productos</p>
             <p className="text-sm">Agrega productos al pedido con el botón de arriba.</p>
           </div>
         ) : (
@@ -235,11 +216,11 @@ export default function DetallesPedido() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left   text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Producto</th>
-                    <th className="text-center  text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Cantidad</th>
-                    <th className="text-right   text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Precio unit.</th>
-                    <th className="text-right   text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Subtotal</th>
-                    <th className="text-center  text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Acción</th>
+                    <th className="text-left  text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Producto</th>
+                    <th className="text-center text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Cantidad</th>
+                    <th className="text-right  text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Precio unit.</th>
+                    <th className="text-right  text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Subtotal</th>
+                    <th className="text-center text-xs font-bold uppercase tracking-wide text-gray-400 px-5 py-3">Acción</th>
                   </tr>
                 </thead>
 
@@ -260,7 +241,6 @@ export default function DetallesPedido() {
                                 <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{item.plato.descripcion}</p>
                               )}
                             </div>
-                            {/* Badge modificado */}
                             {esMod && (
                               <span className="shrink-0 text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 px-2 py-0.5 rounded-full">
                                 modificado
@@ -278,9 +258,7 @@ export default function DetallesPedido() {
                                 actualizarCantidad(item.idDetallePedido, item.cantidad - 1)
                               }
                               disabled={item.cantidad <= 1}
-                              className="w-7 h-7 rounded-lg border border-gray-300 bg-white text-gray-600 text-sm font-bold
-                                hover:bg-red-50 hover:border-red-300 hover:text-red-600
-                                disabled:opacity-30 disabled:cursor-not-allowed transition"
+                              className="w-7 h-7 rounded-lg border border-gray-300 bg-white text-gray-600 text-sm font-bold hover:bg-red-50 hover:border-red-300 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
                             >
                               −
                             </button>
@@ -289,8 +267,7 @@ export default function DetallesPedido() {
                             </span>
                             <button
                               onClick={() => actualizarCantidad(item.idDetallePedido, item.cantidad + 1)}
-                              className="w-7 h-7 rounded-lg border border-gray-300 bg-white text-gray-600 text-sm font-bold
-                                hover:bg-green-50 hover:border-green-300 hover:text-green-600 transition"
+                              className="w-7 h-7 rounded-lg border border-gray-300 bg-white text-gray-600 text-sm font-bold hover:bg-green-50 hover:border-green-300 hover:text-green-600 transition"
                             >
                               +
                             </button>
@@ -313,11 +290,10 @@ export default function DetallesPedido() {
                         <td className="px-5 py-4 text-center">
                           <button
                             onClick={() => eliminarDetalle(item.idDetallePedido)}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-red-200
-                              bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300 transition text-sm font-bold"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 transition"
                             title="Eliminar producto"
                           >
-                            ✕
+                            <X size={14} strokeWidth={2.5} />
                           </button>
                         </td>
                       </tr>
@@ -334,7 +310,6 @@ export default function DetallesPedido() {
                 <p className="text-xl font-bold text-gray-800">{formatCOP(total)}</p>
               </div>
               <div className="flex gap-3 items-center">
-                {/* Indicador de cuántos cambios hay */}
                 {hayModificados && (
                   <span className="text-xs font-semibold text-yellow-700 bg-yellow-100 border border-yellow-300 rounded-full px-2.5 py-1">
                     {modificados.size} sin guardar
@@ -349,18 +324,10 @@ export default function DetallesPedido() {
                 <button
                   onClick={guardarCambios}
                   disabled={guardando || !hayModificados}
-                  className={`inline-flex items-center gap-2 text-sm font-semibold rounded-lg px-5 py-2 shadow-sm transition
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    ${hayModificados
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
-                      : "bg-gray-200 text-gray-400"
-                    }`}
+                  className={`inline-flex items-center gap-2 text-sm font-semibold rounded-lg px-5 py-2 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed ${hayModificados ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-200 text-gray-400"}`}
                 >
                   {guardando ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      Guardando…
-                    </>
+                    <><Loader2 size={14} className="animate-spin" /> Guardando…</>
                   ) : (
                     "Guardar cambios"
                   )}

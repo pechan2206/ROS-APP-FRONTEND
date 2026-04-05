@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { proveedorService } from "../services/proveedorService";
+import { Building2, Phone, Mail, MapPin, X, AlertTriangle } from "lucide-react";
 
 export default function ProveedorForm({ proveedor, onClose, onSave }) {
   const esEdicion = !!proveedor?.idProveedor;
@@ -79,15 +80,16 @@ export default function ProveedorForm({ proveedor, onClose, onSave }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition text-sm font-bold"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
 
         {error && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700">
-            ⚠️ {error}
+          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700 flex items-center gap-2">
+            <AlertTriangle size={16} />
+            {error}
           </div>
         )}
 
@@ -99,7 +101,9 @@ export default function ProveedorForm({ proveedor, onClose, onSave }) {
               Nombre <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">🏭</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Building2 size={16} />
+              </span>
               <input
                 type="text" name="nombre" value={form.nombre} onChange={handleChange}
                 placeholder="Ej: Distribuidora Central"
@@ -115,7 +119,9 @@ export default function ProveedorForm({ proveedor, onClose, onSave }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">📱</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Phone size={16} />
+              </span>
               <input
                 type="tel" name="telefono" value={form.telefono} onChange={handleChange}
                 placeholder="Ej: 3001234567"
@@ -131,7 +137,9 @@ export default function ProveedorForm({ proveedor, onClose, onSave }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Correo</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">✉️</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Mail size={16} />
+              </span>
               <input
                 type="email" name="correo" value={form.correo} onChange={handleChange}
                 placeholder="Ej: contacto@proveedor.com"
@@ -147,7 +155,9 @@ export default function ProveedorForm({ proveedor, onClose, onSave }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Dirección</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">📍</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <MapPin size={16} />
+              </span>
               <input
                 type="text" name="direccion" value={form.direccion} onChange={handleChange}
                 placeholder="Ej: Cra 10 #45-20"
@@ -156,7 +166,7 @@ export default function ProveedorForm({ proveedor, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Estado — solo en edición */}
+          {/* Estado */}
           {esEdicion && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>

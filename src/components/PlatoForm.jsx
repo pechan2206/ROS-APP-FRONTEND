@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { platosService } from "../services/platosService";
+import { Utensils, DollarSign, Folder, FileText, Image, X, AlertTriangle } from "lucide-react";
 
 const LABELS = {
   nombre:      "Nombre",
@@ -102,16 +103,17 @@ export default function PlatoForm({ plato, onClose, onSave }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition text-sm font-bold"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
 
         {/* Banner error */}
         {error && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700">
-            ⚠️ {error}
+          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-semibold text-red-700 flex items-center gap-2">
+            <AlertTriangle size={16} />
+            {error}
           </div>
         )}
 
@@ -124,7 +126,9 @@ export default function PlatoForm({ plato, onClose, onSave }) {
               Nombre <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base pointer-events-none select-none">🍽️</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Utensils size={16} />
+              </span>
               <input
                 type="text"
                 name="nombre"
@@ -145,7 +149,9 @@ export default function PlatoForm({ plato, onClose, onSave }) {
               Precio <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base pointer-events-none select-none">💰</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <DollarSign size={16} />
+              </span>
               <input
                 type="number"
                 name="precio"
@@ -168,7 +174,9 @@ export default function PlatoForm({ plato, onClose, onSave }) {
               Categoría <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base pointer-events-none select-none">📂</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Folder size={16} />
+              </span>
               <select
                 value={idCategoria}
                 onChange={e => { setIdCategoria(e.target.value); if (errores.idCategoria) setErrores(p => ({ ...p, idCategoria: "" })); }}
@@ -189,7 +197,9 @@ export default function PlatoForm({ plato, onClose, onSave }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-base pointer-events-none select-none">📝</span>
+              <span className="absolute left-3 top-3 text-gray-400">
+                <FileText size={16} />
+              </span>
               <textarea
                 name="descripcion"
                 value={form.descripcion}
@@ -205,7 +215,9 @@ export default function PlatoForm({ plato, onClose, onSave }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Imagen (URL)</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base pointer-events-none select-none">🖼️</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Image size={16} />
+              </span>
               <input
                 type="text"
                 name="imagen"
@@ -217,7 +229,7 @@ export default function PlatoForm({ plato, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Estado — solo en edición */}
+          {/* Estado */}
           {esEdicion && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>

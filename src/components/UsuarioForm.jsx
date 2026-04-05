@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usuarioService } from "../services/usuarioService";
+import { User, Mail, Lock, Phone, Shield, ToggleRight, AlertTriangle } from "lucide-react";
 
 const rolesNombres = { 2: "Mesero", 3: "Cajero", 4: "Cocinero" };
 
@@ -36,7 +37,6 @@ export default function UsuarioForm({ onClose, onSave, usuario }) {
         await usuarioService.guardar(nuevoUsuario);
       }
 
-      // ← pasar objeto con info para la alerta
       onSave({
         ...nuevoUsuario,
         rolNombre: rolesNombres[parseInt(rol)] || "—",
@@ -60,100 +60,143 @@ export default function UsuarioForm({ onClose, onSave, usuario }) {
       </h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg mb-3">
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg mb-3 flex items-center gap-2">
+          <AlertTriangle size={16} />
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
 
+        {/* Nombre */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Nombre</label>
-          <input
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-            placeholder="Ej: Juan"
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <User size={16} />
+            </span>
+            <input
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              placeholder="Ej: Juan"
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
         </div>
 
+        {/* Apellido */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Apellido</label>
-          <input
-            value={apellido}
-            onChange={e => setApellido(e.target.value)}
-            placeholder="Ej: García"
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <User size={16} />
+            </span>
+            <input
+              value={apellido}
+              onChange={e => setApellido(e.target.value)}
+              placeholder="Ej: García"
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
         </div>
 
+        {/* Correo */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Correo</label>
-          <input
-            type="email"
-            value={correo}
-            onChange={e => setCorreo(e.target.value)}
-            placeholder="Ej: juan@correo.com"
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Mail size={16} />
+            </span>
+            <input
+              type="email"
+              value={correo}
+              onChange={e => setCorreo(e.target.value)}
+              placeholder="Ej: juan@correo.com"
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
         </div>
 
+        {/* Contraseña */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">
             {usuario ? "Nueva contraseña (opcional)" : "Contraseña"}
           </label>
-        <input
-          type="password"
-          value={contrasena}
-          onChange={e => setContrasena(e.target.value)}
-          placeholder={usuario ? "Dejar vacío para no cambiar" : "Mínimo 6 caracteres"}
-          className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          minLength={6}
-          required={!usuario}
-          autoComplete="new-password"  // ← esto le dice al navegador que no autocomplete
-        />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Lock size={16} />
+            </span>
+            <input
+              type="password"
+              value={contrasena}
+              onChange={e => setContrasena(e.target.value)}
+              placeholder={usuario ? "Dejar vacío para no cambiar" : "Mínimo 6 caracteres"}
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              minLength={6}
+              required={!usuario}
+              autoComplete="new-password"
+            />
+          </div>
         </div>
 
+        {/* Teléfono */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Teléfono</label>
-          <input
-            value={telefono}
-            onChange={e => setTelefono(e.target.value)}
-            placeholder="Ej: 3001234567"
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            pattern="3\d{9}"
-            title="Debe iniciar con 3 y tener 10 dígitos"
-            required
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Phone size={16} />
+            </span>
+            <input
+              value={telefono}
+              onChange={e => setTelefono(e.target.value)}
+              placeholder="Ej: 3001234567"
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              pattern="3\d{9}"
+              title="Debe iniciar con 3 y tener 10 dígitos"
+              required
+            />
+          </div>
         </div>
 
+        {/* Rol */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Rol</label>
-          <select
-            value={rol}
-            onChange={e => setRol(e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          >
-            <option value="">Seleccionar rol</option>
-            <option value={2}>Mesero</option>
-            <option value={3}>Cajero</option>
-            <option value={4}>Cocinero</option>
-          </select>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Shield size={16} />
+            </span>
+            <select
+              value={rol}
+              onChange={e => setRol(e.target.value)}
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            >
+              <option value="">Seleccionar rol</option>
+              <option value={2}>Mesero</option>
+              <option value={3}>Cajero</option>
+              <option value={4}>Cocinero</option>
+            </select>
+          </div>
         </div>
 
+        {/* Estado */}
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Estado</label>
-          <select
-            value={estado}
-            onChange={e => setEstado(e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-          </select>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <ToggleRight size={16} />
+            </span>
+            <select
+              value={estado}
+              onChange={e => setEstado(e.target.value)}
+              className="w-full border border-gray-300 pl-9 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-2">
