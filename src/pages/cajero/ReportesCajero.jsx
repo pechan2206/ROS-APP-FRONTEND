@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
-import { TrendingUp } from "lucide-react";
+import { X, TrendingUp, BarChart2 } from "lucide-react";
 import ReporteIngresosPorMetodoPago from "../../components/Reportes/ReporteIngresosPorMetodoPago";
 
 export default function ReportesCajero() {
@@ -81,10 +80,10 @@ export default function ReportesCajero() {
               <h3 className="text-xl font-semibold mb-2 text-gray-800">{reporte.titulo}</h3>
               <p className="text-sm text-gray-600 leading-relaxed mb-4">{reporte.descripcion}</p>
               <button
-                className="w-full py-2.5 px-5 rounded-lg font-semibold text-sm text-white hover:opacity-90 transition"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-lg font-semibold text-sm text-white hover:opacity-90 transition"
                 style={{ backgroundColor: reporte.color }}
               >
-                📊 Generar Reporte
+                <BarChart2 size={15} /> Generar Reporte
               </button>
             </div>
           ))}

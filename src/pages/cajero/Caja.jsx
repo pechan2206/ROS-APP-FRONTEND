@@ -2,21 +2,20 @@ import { useEffect, useState } from "react";
 import { pedidoService } from "../../services/pedidoService";
 import { ingresoService } from "../../services/ingresoService";
 import { metodoPagoService } from "../../services/metodoPagoService";
+import { RefreshCw, ClipboardList, CheckCircle, BarChart2, DollarSign, Banknote, Loader2, PartyPopper } from "lucide-react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-console.log("ingresoService:", ingresoService);
-console.log("pedidoService:", pedidoService);
-console.log("metodoPagoService:", metodoPagoService);
+
 const SweetAlert = withReactContent(Swal);
 
 export default function Caja() {
   const [pedidosEntregados, setPedidosEntregados] = useState([]);
-  const [pedidosPagados, setPedidosPagados] = useState([]);
-  const [ingresos, setIngresos] = useState([]);
-  const [metodosPago, setMetodosPago] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [cobrandoIds, setCobrandoIds] = useState(new Set());
-  const [pestana, setPestana] = useState("pendientes");
+  const [pedidosPagados, setPedidosPagados]       = useState([]);
+  const [ingresos, setIngresos]                   = useState([]);
+  const [metodosPago, setMetodosPago]             = useState([]);
+  const [loading, setLoading]                     = useState(true);
+  const [cobrandoIds, setCobrandoIds]             = useState(new Set());
+  const [pestana, setPestana]                     = useState("pendientes");
 
   const cargarDatos = async () => {
     try {
@@ -25,8 +24,6 @@ export default function Caja() {
 
       setPedidosEntregados(todosPedidos.filter((p) => p.estado === "Entregado"));
       setPedidosPagados(todosPedidos.filter((p) => p.estado === "Pagado"));
-
-      // ✅ Limpia TODO el set al recargar — fix del "procesando"
       setCobrandoIds(new Set());
 
       const todosIngresos = await ingresoService.listar();
@@ -43,9 +40,7 @@ export default function Caja() {
     }
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos(); }, []);
 
   const registrarCobro = async (pedido) => {
     if (cobrandoIds.has(pedido.idPedido)) return;
@@ -66,9 +61,7 @@ export default function Caja() {
               Método de Pago:
             </label>
             <select id="metodoPago" class="swal2-input" style="width:100%;margin:0">
-              ${metodosPago
-                .map((m) => `<option value="${m.idMetodo}">${m.nombre}</option>`)
-                .join("")}
+              ${metodosPago.map((m) => `<option value="${m.idMetodo}">${m.nombre}</option>`).join("")}
             </select>
           </div>
           <div>
@@ -83,23 +76,23 @@ export default function Caja() {
       `,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: "💰 Registrar Cobro",
+      confirmButtonText: "Registrar Cobro",
       cancelButtonText: "Cancelar",
       confirmButtonColor: "#16a34a",
       preConfirm: () => ({
         metodoPagoId: document.getElementById("metodoPago").value,
-        descripcion: document.getElementById("descripcion").value,
+        descripcion:  document.getElementById("descripcion").value,
       }),
     });
 
     if (formValues) {
       try {
         await ingresoService.crear({
-          monto: pedido.total,
+          monto:       pedido.total,
           descripcion: formValues.descripcion,
-          fecha: new Date().toISOString().split("T")[0],
-          metodoPago: { idMetodo: parseInt(formValues.metodoPagoId) },
-          pedido: { idPedido: pedido.idPedido },
+          fecha:       new Date().toISOString().split("T")[0],
+          metodoPago:  { idMetodo: parseInt(formValues.metodoPagoId) },
+          pedido:      { idPedido: pedido.idPedido },
         });
 
         SweetAlert.fire({
@@ -110,12 +103,9 @@ export default function Caja() {
           showConfirmButton: false,
         });
 
-        // ✅ cargarDatos limpia cobrandoIds y actualiza todo
         await cargarDatos();
-
       } catch (error) {
         console.error("Error al registrar cobro:", error);
-        // Desbloquea solo ese id si falla
         setCobrandoIds((prev) => {
           const next = new Set(prev);
           next.delete(pedido.idPedido);
@@ -130,7 +120,6 @@ export default function Caja() {
         );
       }
     } else {
-      // Canceló el modal → desbloquea
       setCobrandoIds((prev) => {
         const next = new Set(prev);
         next.delete(pedido.idPedido);
@@ -144,7 +133,10 @@ export default function Caja() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="text-xl text-gray-500">Cargando...</div>
+        <div className="flex items-center gap-3 text-gray-400 text-sm">
+          <Loader2 size={18} className="animate-spin text-blue-500" />
+          Cargando…
+        </div>
       </div>
     );
   }
@@ -154,12 +146,17 @@ export default function Caja() {
 
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">💰 Caja</h1>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 rounded-xl">
+            <DollarSign size={22} className="text-green-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800">Caja</h1>
+        </div>
         <button
           onClick={cargarDatos}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
         >
-          🔄 Actualizar
+          <RefreshCw size={15} /> Actualizar
         </button>
       </div>
 
@@ -167,15 +164,11 @@ export default function Caja() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
           <p className="text-sm text-green-700 font-semibold">Ingresos Hoy</p>
-          <p className="text-3xl font-bold text-green-700">
-            ${totalIngresos.toLocaleString("es-CO")}
-          </p>
+          <p className="text-3xl font-bold text-green-700">${totalIngresos.toLocaleString("es-CO")}</p>
         </div>
         <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg">
           <p className="text-sm text-amber-700 font-semibold">Pendientes de Cobro</p>
-          <p className="text-3xl font-bold text-amber-700">
-            {pedidosEntregados.length}
-          </p>
+          <p className="text-3xl font-bold text-amber-700">{pedidosEntregados.length}</p>
         </div>
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
           <p className="text-sm text-blue-700 font-semibold">Cobros Registrados Hoy</p>
@@ -187,15 +180,15 @@ export default function Caja() {
       <div className="flex gap-2 mb-6 border-b border-gray-200">
         <button
           onClick={() => setPestana("pendientes")}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition border-b-2 -mb-px ${
+          className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-t-lg transition border-b-2 -mb-px ${
             pestana === "pendientes"
               ? "border-green-600 text-green-700 bg-green-50"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          📋 Por Cobrar
+          <ClipboardList size={15} /> Por Cobrar
           {pedidosEntregados.length > 0 && (
-            <span className="ml-2 bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="ml-1 bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
               {pedidosEntregados.length}
             </span>
           )}
@@ -203,15 +196,15 @@ export default function Caja() {
 
         <button
           onClick={() => setPestana("pagados")}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition border-b-2 -mb-px ${
+          className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-t-lg transition border-b-2 -mb-px ${
             pestana === "pagados"
               ? "border-green-600 text-green-700 bg-green-50"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          ✅ Pagados
+          <CheckCircle size={15} /> Pagados
           {pedidosPagados.length > 0 && (
-            <span className="ml-2 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="ml-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
               {pedidosPagados.length}
             </span>
           )}
@@ -219,13 +212,13 @@ export default function Caja() {
 
         <button
           onClick={() => setPestana("ingresos")}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition border-b-2 -mb-px ${
+          className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-t-lg transition border-b-2 -mb-px ${
             pestana === "ingresos"
               ? "border-green-600 text-green-700 bg-green-50"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          📊 Ingresos del Día
+          <BarChart2 size={15} /> Ingresos del Día
         </button>
       </div>
 
@@ -235,21 +228,12 @@ export default function Caja() {
           {pedidosEntregados.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {pedidosEntregados.map((pedido) => (
-                <div
-                  key={pedido.idPedido}
-                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition"
-                >
+                <div key={pedido.idPedido} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-bold text-lg text-gray-800">
-                        Pedido #{pedido.idPedido}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Mesa: {pedido.mesa?.numero || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Cliente: {pedido.cliente?.nombre || "N/A"}
-                      </p>
+                      <h3 className="font-bold text-lg text-gray-800">Pedido #{pedido.idPedido}</h3>
+                      <p className="text-sm text-gray-500">Mesa: {pedido.mesa?.numero || "N/A"}</p>
+                      <p className="text-sm text-gray-500">Cliente: {pedido.cliente?.nombre || "N/A"}</p>
                     </div>
                     <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded-full">
                       {pedido.tipo}
@@ -263,20 +247,24 @@ export default function Caja() {
                   <button
                     onClick={() => registrarCobro(pedido)}
                     disabled={cobrandoIds.has(pedido.idPedido)}
-                    className={`w-full py-2 rounded-lg transition font-semibold text-white text-sm ${
+                    className={`w-full inline-flex items-center justify-center gap-2 py-2 rounded-lg transition font-semibold text-white text-sm ${
                       cobrandoIds.has(pedido.idPedido)
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-green-600 hover:bg-green-700"
                     }`}
                   >
-                    {cobrandoIds.has(pedido.idPedido) ? "⏳ Procesando..." : "💵 Cobrar"}
+                    {cobrandoIds.has(pedido.idPedido) ? (
+                      <><Loader2 size={14} className="animate-spin" /> Procesando…</>
+                    ) : (
+                      <><Banknote size={15} /> Cobrar</>
+                    )}
                   </button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-gray-50 rounded-xl">
-              <p className="text-4xl mb-2">🎉</p>
+            <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-xl gap-3">
+              <PartyPopper size={40} strokeWidth={1.5} className="text-gray-300" />
               <p className="text-gray-500 font-medium">No hay pedidos pendientes de cobro</p>
             </div>
           )}
@@ -289,24 +277,15 @@ export default function Caja() {
           {pedidosPagados.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {pedidosPagados.map((pedido) => (
-                <div
-                  key={pedido.idPedido}
-                  className="bg-white border border-green-200 rounded-xl p-4"
-                >
+                <div key={pedido.idPedido} className="bg-white border border-green-200 rounded-xl p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-bold text-lg text-gray-700">
-                        Pedido #{pedido.idPedido}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Mesa: {pedido.mesa?.numero || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Cliente: {pedido.cliente?.nombre || "N/A"}
-                      </p>
+                      <h3 className="font-bold text-lg text-gray-700">Pedido #{pedido.idPedido}</h3>
+                      <p className="text-sm text-gray-500">Mesa: {pedido.mesa?.numero || "N/A"}</p>
+                      <p className="text-sm text-gray-500">Cliente: {pedido.cliente?.nombre || "N/A"}</p>
                     </div>
-                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                      ✅ Pagado
+                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                      <CheckCircle size={11} /> Pagado
                     </span>
                   </div>
                   <div className="border-t pt-3">
@@ -333,10 +312,9 @@ export default function Caja() {
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Método</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Monto</th>
+                    {["ID", "Descripción", "Método", "Monto"].map(h => (
+                      <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -357,9 +335,7 @@ export default function Caja() {
                 </tbody>
                 <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                   <tr>
-                    <td colSpan={3} className="px-6 py-3 text-sm font-semibold text-gray-700">
-                      Total del día
-                    </td>
+                    <td colSpan={3} className="px-6 py-3 text-sm font-semibold text-gray-700">Total del día</td>
                     <td className="px-6 py-3 text-base font-bold text-green-700">
                       ${totalIngresos.toLocaleString("es-CO")}
                     </td>
