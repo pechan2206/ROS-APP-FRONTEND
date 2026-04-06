@@ -111,7 +111,7 @@ export default function Platos() {
     const cargar = async () => {
       try {
         const [dataPlatos, dataCategorias] = await Promise.all([
-          platosService.listar(),
+          platosService.listarActivos(),
           categoriaPlatoService.listar(),
         ]);
         setPlatos(dataPlatos);
