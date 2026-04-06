@@ -2,7 +2,7 @@ import { useState } from "react";
 import { usuarioService } from "../services/usuarioService";
 import { User, Mail, Lock, Phone, Shield, ToggleRight, AlertTriangle } from "lucide-react";
 
-const rolesNombres = { 2: "Mesero", 3: "Cajero", 4: "Cocinero" };
+const rolesNombres = { 2: "Mesero", 3: "Cocinero", 4: "Cajero" };
 
 export default function UsuarioForm({ onClose, onSave, usuario }) {
   const [nombre,    setNombre]    = useState(usuario?.nombre    || "");
@@ -175,8 +175,8 @@ export default function UsuarioForm({ onClose, onSave, usuario }) {
             >
               <option value="">Seleccionar rol</option>
               <option value={2}>Mesero</option>
-              <option value={3}>Cajero</option>
-              <option value={4}>Cocinero</option>
+              <option value={3}>Cocinero</option>
+              <option value={4}>Cajero</option>
             </select>
           </div>
         </div>

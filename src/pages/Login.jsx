@@ -46,9 +46,6 @@ export default function Login({ setRol }) {
         }
     };
 
-    const irARegistro = () => {
-        navigate("/register");
-    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -92,12 +89,6 @@ export default function Login({ setRol }) {
                     </button>
                 </form>
 
-                <button
-                    onClick={irARegistro}
-                    className="w-full mt-4 text-blue-600 hover:underline text-sm"
-                >
-                    ¿No tienes cuenta? Regístrate
-                </button>
             </div>
         </div>
     );

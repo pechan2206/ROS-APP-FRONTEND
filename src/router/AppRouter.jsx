@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
-import Register from "../pages/Register";
 import AdminRouter from "./AdminRouter";
 import MeseroRouter from "./MeseroRouter";
 import CocineroRouter from "./CocineroRouter";
@@ -25,7 +24,7 @@ export default function AppRouter() {
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login setRol={setRol} />} />
-        <Route path="/register" element={<Register />} />
+        
         
         {/* No role → send to login */}
         {!rol && <Route path="/*" element={<Navigate to="/login" />} />}
